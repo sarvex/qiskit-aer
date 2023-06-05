@@ -187,12 +187,10 @@ class AerState:
             self._native_state.initialize()
             if not data.flags.c_contiguous and not data.flags.f_contiguous:
                 data = np.ascontiguousarray(data)
-            if self._method == "statevector":
+            if self._method == "statevector" or self._method != "density_matrix":
                 self._native_state.apply_initialize(range(num_of_qubits), data)
-            elif self._method == "density_matrix":
-                self._native_state.set_density_matrix(range(num_of_qubits), data)
             else:
-                self._native_state.apply_initialize(range(num_of_qubits), data)
+                self._native_state.set_density_matrix(range(num_of_qubits), data)
             self._allocated()
             copy = True
 

@@ -205,7 +205,9 @@ def depolarizing_error(param, num_qubits):
     num_terms = 4**num_qubits
     max_param = num_terms / (num_terms - 1)
     if param < 0 or param > max_param:
-        raise NoiseError("Depolarizing parameter must be in between 0 " "and {}.".format(max_param))
+        raise NoiseError(
+            f"Depolarizing parameter must be in between 0 and {max_param}."
+        )
 
     # Rescale completely depolarizing channel error probs
     # with the identity component removed
@@ -283,14 +285,14 @@ def thermal_relaxation_error(t1, t2, time, excited_state_population=0):
     """
     if excited_state_population < 0:
         raise NoiseError(
-            "Invalid excited state population " "({} < 0).".format(excited_state_population)
+            f"Invalid excited state population ({excited_state_population} < 0)."
         )
     if excited_state_population > 1:
         raise NoiseError(
-            "Invalid excited state population " "({} > 1).".format(excited_state_population)
+            f"Invalid excited state population ({excited_state_population} > 1)."
         )
     if time < 0:
-        raise NoiseError("Invalid gate_time ({} < 0)".format(time))
+        raise NoiseError(f"Invalid gate_time ({time} < 0)")
     if t1 <= 0:
         raise NoiseError("Invalid T_1 relaxation time parameter: T_1 <= 0.")
     if t2 <= 0:
@@ -390,21 +392,22 @@ def phase_amplitude_damping_error(
     """
 
     if param_amp < 0:
-        raise NoiseError("Invalid amplitude damping to |0> parameter " "({} < 0)".format(param_amp))
+        raise NoiseError(
+            f"Invalid amplitude damping to |0> parameter ({param_amp} < 0)"
+        )
     if param_phase < 0:
-        raise NoiseError("Invalid phase damping parameter " "({} < 0)".format(param_phase))
+        raise NoiseError(f"Invalid phase damping parameter ({param_phase} < 0)")
     if param_phase + param_amp > 1:
         raise NoiseError(
-            "Invalid amplitude and phase damping parameters "
-            "({} + {} > 1)".format(param_phase, param_amp)
+            f"Invalid amplitude and phase damping parameters ({param_phase} + {param_amp} > 1)"
         )
     if excited_state_population < 0:
         raise NoiseError(
-            "Invalid excited state population " "({} < 0).".format(excited_state_population)
+            f"Invalid excited state population ({excited_state_population} < 0)."
         )
     if excited_state_population > 1:
         raise NoiseError(
-            "Invalid excited state population " "({} > 1).".format(excited_state_population)
+            f"Invalid excited state population ({excited_state_population} > 1)."
         )
     c0 = np.sqrt(1 - excited_state_population)
     c1 = np.sqrt(excited_state_population)

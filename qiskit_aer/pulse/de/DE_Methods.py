@@ -226,10 +226,11 @@ class ScipyODE(ODE_Method):
             self._t = results.t[-1]
 
             # discard warnings for arguments with no effect
-            for w in ws:
-                if "The following arguments have no effect" not in str(w.message):
-                    kept_warnings.append(w)
-
+            kept_warnings.extend(
+                w
+                for w in ws
+                if "The following arguments have no effect" not in str(w.message)
+            )
         # display warnings we don't want to silence
         for w in kept_warnings:
             warnings.warn(w.message, type(w))

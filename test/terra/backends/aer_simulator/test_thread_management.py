@@ -34,11 +34,11 @@ class TestThreadManagement(SimulatorTestCase):
         self, total_threads=None, state_threads=None, shot_threads=None, exp_threads=None
     ):
         """Backend options with thread manangement."""
-        opts = {}
-        if total_threads is not None:
-            opts["max_parallel_threads"] = total_threads
-        else:
-            opts["max_parallel_threads"] = 0
+        opts = {
+            "max_parallel_threads": total_threads
+            if total_threads is not None
+            else 0
+        }
         if shot_threads is not None:
             opts["max_parallel_shots"] = shot_threads
         if state_threads is not None:
@@ -97,7 +97,9 @@ class TestThreadManagement(SimulatorTestCase):
         result = backend.run(circuit, shots=100).result()
         max_mem_result = result.metadata.get("max_memory_mb")
         self.assertGreaterEqual(
-            max_mem_result, int(system_memory / 2), msg="Default 'max_memory_mb' is too small."
+            max_mem_result,
+            system_memory // 2,
+            msg="Default 'max_memory_mb' is too small.",
         )
         self.assertLessEqual(
             max_mem_result, system_memory, msg="Default 'max_memory_mb' is too large."

@@ -75,19 +75,13 @@ class HamiltonianParser:
         # convert to reverse Polish notation
         for ham in self.h_str:
             if len(re.findall(r"\|\|", ham)) > 1:
-                raise Exception("Multiple time-dependent terms in %s" % ham)
-            p_td = re.search(r"(?P<opr>[\S]+)\|\|(?P<ch>[\S]+)", ham)
-
-            # find time-dependent term
-            if p_td:
-                coef, token = self._tokenizer(p_td.group("opr"), qubit_list)
+                raise Exception(f"Multiple time-dependent terms in {ham}")
+            if p_td := re.search(r"(?P<opr>[\S]+)\|\|(?P<ch>[\S]+)", ham):
+                coef, token = self._tokenizer(p_td["opr"], qubit_list)
                 if token is None:
                     continue
                 # combine coefficient to time-dependent term
-                if coef:
-                    td = "*".join([coef, p_td.group("ch")])
-                else:
-                    td = p_td.group("ch")
+                td = "*".join([coef, p_td["ch"]]) if coef else p_td["ch"]
                 token = self._shunting_yard(token)
                 _td = self._token2qobj(token), td
 
@@ -118,7 +112,7 @@ class HamiltonianParser:
             p_sums = list(sum_str.finditer(ham))
             p_brks = list(brk_str.finditer(ham))
             if len(p_sums) != len(p_brks):
-                raise Exception("Missing correct number of brackets in %s" % ham)
+                raise Exception(f"Missing correct number of brackets in {ham}")
 
             # find correct sum-bracket correspondence
             if any(p_sums) == 0:
@@ -142,10 +136,7 @@ class HamiltonianParser:
                     for p in re.finditer(r"\{(?P<op_str>[a-z0-9*/+-]+)\}", trg_s):
                         if p.group() not in pattern:
                             sub = parse_binop(p.group("op_str"), operands={itr: str(kk)})
-                            if sub.isdecimal():
-                                pattern[p.group()] = sub
-                            else:
-                                pattern[p.group()] = "{%s}" % sub
+                            pattern[p.group()] = sub if sub.isdecimal() else "{%s}" % sub
                     for key, val in pattern.items():
                         trg_s = trg_s.replace(key, val)
                     _temp.append(
@@ -168,8 +159,7 @@ class HamiltonianParser:
         prev = "none"
         while any(_op_str):
             for key, parser in ham_elements.items():
-                p = parser.match(_op_str)
-                if p:
+                if p := parser.match(_op_str):
                     # find quantum operators
                     if key in ["QubOpr", "CavOpr"]:
                         _key = key
@@ -207,19 +197,19 @@ class HamiltonianParser:
                     prev = _key
                     break
             else:
-                raise Exception("Invalid input string %s is found" % op_str)
+                raise Exception(f"Invalid input string {op_str} is found")
 
         # split coefficient
         coef = ""
-        if any([k.type == "Var" for k in token_list]):
+        if any(k.type == "Var" for k in token_list):
             for ii, _ in enumerate(token_list):
                 if token_list[ii].name == "*":
-                    if all([k.type != "Var" for k in token_list[ii + 1 :]]):
+                    if all(k.type != "Var" for k in token_list[ii + 1 :]):
                         coef = "".join([k.name for k in token_list[:ii]])
                         token_list = token_list[ii + 1 :]
                         break
             else:
-                raise Exception("Invalid order of operators and coefficients in %s" % op_str)
+                raise Exception(f"Invalid order of operators and coefficients in {op_str}")
 
         return coef, token_list
 
@@ -248,7 +238,7 @@ class HamiltonianParser:
                 if pop.type == "Func":
                     queue.append(pop)
             else:
-                raise Exception("Invalid token %s is found" % token.name)
+                raise Exception(f"Invalid token {token.name} is found")
 
         while any(stack):
             queue.append(stack.pop(-1))
@@ -269,21 +259,21 @@ class HamiltonianParser:
             elif token.type in ["MathOrd0", "MathOrd1"]:
                 op2 = stack.pop(-1)
                 op1 = stack.pop(-1)
-                if token.name == "+":
-                    stack.append(op1 + op2)
-                elif token.name == "-":
-                    stack.append(op1 - op2)
-                elif token.name == "*":
+                if token.name == "*":
                     if isinstance(op1, Operator) and isinstance(op2, Operator):
                         stack.append(op1 & op2)
                     else:
                         stack.append(op1 * op2)
+                elif token.name == "+":
+                    stack.append(op1 + op2)
+                elif token.name == "-":
+                    stack.append(op1 - op2)
                 elif token.name == "/":
                     stack.append(op1 / op2)
             elif token.type in ["Func", "Ext"]:
                 stack.append(apply_func(token.name, stack.pop(-1)))
             else:
-                raise Exception("Invalid token %s is found" % token.name)
+                raise Exception(f"Invalid token {token.name} is found")
 
         if len(stack) > 1:
             raise Exception("Invalid mathematical operation in " % tokens)
@@ -340,7 +330,7 @@ class NoiseParser:
                 if opname in ["X", "Y", "Z", "Sp", "Sm"]:
                     opr = gen_oper(opname, int(index), self.dim_osc, self.dim_qub)
                 else:
-                    raise Exception("Unsupported noise operator %s is given" % opname)
+                    raise Exception(f"Unsupported noise operator {opname} is given")
                 self.__c_list.append(np.sqrt(coef) * opr)
         # Oscillator noise
         ndic = self.noise_osc["n_th"]
@@ -363,10 +353,7 @@ def math_priority(o1, o2):
     rank = {"MathUnitary": 2, "MathOrd0": 1, "MathOrd1": 0}
     diff_ops = rank.get(o1.type, -1) - rank.get(o2.type, -1)
 
-    if diff_ops > 0:
-        return False
-    else:
-        return True
+    return diff_ops <= 0
 
 
 # pylint: disable=dangerous-default-value
@@ -381,42 +368,44 @@ def parse_binop(op_str, operands={}, cast_str=True):
     )
 
     for key, regr in oprs.items():
-        p = re.match(regr, op_str)
-        if p:
-            val0 = operands.get(p.group("v0"), p.group("v0"))
-            if key == "non":
+        if p := re.match(regr, op_str):
+            val0 = operands.get(p["v0"], p["v0"])
+            if key == "div":
+                val1 = operands.get(p["v1"], p["v1"])
+                retv = (
+                    int(val0) / int(val1)
+                    if val0.isdecimal() and val1.isdecimal()
+                    else "/".join([str(val0), str(val1)])
+                )
+            elif key == "mul":
+                val1 = operands.get(p["v1"], p["v1"])
+                retv = (
+                    int(val0) * int(val1)
+                    if val0.isdecimal() and val1.isdecimal()
+                    else "*".join([str(val0), str(val1)])
+                )
+            elif key == "non":
                 # substitution
                 retv = val0
+            elif key == "sub":
+                val1 = operands.get(p["v1"], p["v1"])
+                retv = (
+                    int(val0) - int(val1)
+                    if val0.isdecimal() and val1.isdecimal()
+                    else "-".join([str(val0), str(val1)])
+                )
+            elif key == "sum":
+                val1 = operands.get(p["v1"], p["v1"])
+                retv = (
+                    int(val0) + int(val1)
+                    if val0.isdecimal() and val1.isdecimal()
+                    else "+".join([str(val0), str(val1)])
+                )
             else:
-                val1 = operands.get(p.group("v1"), p.group("v1"))
-                # binary operation
-                if key == "sum":
-                    if val0.isdecimal() and val1.isdecimal():
-                        retv = int(val0) + int(val1)
-                    else:
-                        retv = "+".join([str(val0), str(val1)])
-                elif key == "sub":
-                    if val0.isdecimal() and val1.isdecimal():
-                        retv = int(val0) - int(val1)
-                    else:
-                        retv = "-".join([str(val0), str(val1)])
-                elif key == "mul":
-                    if val0.isdecimal() and val1.isdecimal():
-                        retv = int(val0) * int(val1)
-                    else:
-                        retv = "*".join([str(val0), str(val1)])
-                elif key == "div":
-                    if val0.isdecimal() and val1.isdecimal():
-                        retv = int(val0) / int(val1)
-                    else:
-                        retv = "/".join([str(val0), str(val1)])
-                else:
-                    retv = 0
+                val1 = operands.get(p["v1"], p["v1"])
+                retv = 0
             break
     else:
-        raise Exception("Invalid string %s" % op_str)
+        raise Exception(f"Invalid string {op_str}")
 
-    if cast_str:
-        return str(retv)
-    else:
-        return retv
+    return str(retv) if cast_str else retv

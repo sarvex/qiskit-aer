@@ -554,9 +554,7 @@ class QasmSimulator(AerBackend):
             if not noise_model.is_ideal():
                 options["noise_model"] = noise_model
 
-        # Initialize simulator
-        sim = cls(configuration=configuration, properties=properties, **options)
-        return sim
+        return cls(configuration=configuration, properties=properties, **options)
 
     def configuration(self):
         """Return the simulator backend configuration.
@@ -630,7 +628,7 @@ class QasmSimulator(AerBackend):
                 for op in experiment.instructions:
                     if not no_measure:
                         break  # we don't need to check any more ops
-                    if no_measure and op.name == "measure":
+                    if op.name == "measure":
                         no_measure = False
                 # Print warning if clbits but no measure
                 if no_measure:
@@ -658,9 +656,7 @@ class QasmSimulator(AerBackend):
         else:
             basis_gates = method_gates
 
-        # Compute intersection with noise model basis gates
-        noise_model = getattr(self.options, "noise_model", None)
-        if noise_model:
+        if noise_model := getattr(self.options, "noise_model", None):
             noise_gates = noise_model.basis_gates
             basis_gates = basis_gates.intersection(noise_gates)
         else:

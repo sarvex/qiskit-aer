@@ -80,7 +80,9 @@ def project(dim, states):
     if ket in range(dim) and bra in range(dim):
         return gen_operator.basis(dim, ket) * gen_operator.basis(dim, bra).adjoint()
     else:
-        raise Exception("States are specified on the outside of Hilbert space %s" % states)
+        raise Exception(
+            f"States are specified on the outside of Hilbert space {states}"
+        )
 
 
 def tensor(list_qobj):
@@ -123,11 +125,8 @@ def qubit_occ_oper_dressed(target_qubit, estates, h_osc, h_qub, level=0):
     rev_h_osc = sorted(h_osc.items(), key=lambda x: x[0])[::-1]
     rev_h_qub = sorted(h_qub.items(), key=lambda x: x[0])[::-1]
 
-    # osc_n * … * osc_0 * qubit_n * … * qubit_0
-    states = []
     proj_op = 0 * fock_dm(len(estates), 0)
-    for ii, dd in rev_h_osc:
-        states.append(basis(dd, 0))
+    states = [basis(dd, 0) for ii, dd in rev_h_osc]
     for ii, dd in rev_h_qub:
         if ii == target_qubit:
             states.append(Operator(basis(dd, level).data.flatten()))

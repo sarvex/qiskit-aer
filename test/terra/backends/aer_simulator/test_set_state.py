@@ -164,15 +164,13 @@ class TestSetMPS(SimulatorTestCase):
     @supported_methods(["automatic", "matrix_product_state"])
     def test_set_matrix_product_state(self, method, device):
         backend = self.backend(method=method, device=device)
-        tests = []
         shots = 1000
         # circuit1 - |11>
         num_qubits = 2
         circ1 = QuantumCircuit(num_qubits)
         state1 = ([([[0]], [[1]]), ([[0]], [[1]])], [[1]])
         target1 = {"0x3": shots}
-        tests.append((circ1, state1, target1))
-
+        tests = [(circ1, state1, target1)]
         # circuit2 - |000>+|111>
         num_qubits = 3
         circ2 = QuantumCircuit(num_qubits)

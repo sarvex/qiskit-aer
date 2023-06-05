@@ -32,8 +32,6 @@ if not hasattr(QuantumCircuit, "i"):
 
 def reset_gate_error_circuits():
     """Reset gate error noise model circuits"""
-    circuits = []
-
     # 50% reset to 0 state on qubit 0
     qr = QuantumRegister(2, "qr")
     cr = ClassicalRegister(2, "cr")
@@ -41,8 +39,7 @@ def reset_gate_error_circuits():
     circuit.x(qr)
     circuit.barrier(qr)
     circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # 25% reset to 0 state on qubit 1
     qr = QuantumRegister(2, "qr")
     cr = ClassicalRegister(2, "cr")
@@ -85,14 +82,11 @@ def reset_gate_error_circuits():
 
 def reset_gate_error_noise_models():
     """Reset gate error noise models"""
-    noise_models = []
-
     # 50% reset to 0 state on qubit 0
     error = reset_error(0.5)
     noise_model = NoiseModel()
     noise_model.add_quantum_error(error, "x", [0])
-    noise_models.append(noise_model)
-
+    noise_models = [noise_model]
     # 25% reset to 0 state on qubit 1
     error = reset_error(0.25)
     noise_model = NoiseModel()
@@ -122,12 +116,9 @@ def reset_gate_error_noise_models():
 
 def reset_gate_error_counts(shots, hex_counts=True):
     """Reset gate error circuits reference counts"""
-    counts_lists = []
-
     # 50% reset to 0 state on qubit 0
     counts = [0, 0, shots / 2, shots / 2]
-    counts_lists.append(counts)
-
+    counts_lists = [counts]
     # 25% reset to 0 state on qubit 1
     counts = [0, shots / 4, 0, 3 * shots / 4]
     counts_lists.append(counts)

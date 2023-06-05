@@ -189,7 +189,4 @@ def thermal_relaxation_values(properties):
 def _check_for_item(lst, name):
     """Search list for item with given name."""
     filtered = [item for item in lst if item.name == name]
-    if not filtered:
-        return None
-    else:
-        return filtered[0]
+    return None if not filtered else filtered[0]

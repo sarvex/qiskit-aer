@@ -52,11 +52,10 @@ class TestSampler(QiskitAerTestCase):
         self._pqc_target = [{0: 1}, {0: 0.0148, 1: 0.3449, 2: 0.0531, 3: 0.5872}]
 
     def _generate_circuits_target(self, indices):
-        if isinstance(indices, list):
-            circuits = [self._circuit[j] for j in indices]
-            target = [self._target[j] for j in indices]
-        else:
+        if not isinstance(indices, list):
             raise ValueError(f"invalid index {indices}")
+        circuits = [self._circuit[j] for j in indices]
+        target = [self._target[j] for j in indices]
         return circuits, target
 
     def _generate_params_target(self, indices):

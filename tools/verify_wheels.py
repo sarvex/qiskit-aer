@@ -49,12 +49,7 @@ def assertAlmostEqual(first, second, places=None, msg=None, delta=None):
         raise TypeError("specify delta or places not both")
 
     diff = abs(first - second)
-    if delta is not None:
-        if diff <= delta:
-            return
-
-        standardMsg = "%s != %s within %s delta (%s difference)" % (first, second, delta, diff)
-    else:
+    if delta is None:
         if places is None:
             places = 7
 
@@ -62,13 +57,16 @@ def assertAlmostEqual(first, second, places=None, msg=None, delta=None):
             return
 
         standardMsg = "%s != %s within %r places (%s difference)" % (first, second, places, diff)
+    elif diff <= delta:
+        return
+
+    else:
+        standardMsg = f"{first} != {second} within {delta} delta ({diff} difference)"
     raise Exception(standardMsg)
 
 
 def grovers_circuit(final_measure=True, allow_sampling=True):
     """Testing a circuit originated in the Grover algorithm"""
-
-    circuits = []
 
     # 6-qubit grovers
     qr = QuantumRegister(6)
@@ -110,9 +108,7 @@ def grovers_circuit(final_measure=True, allow_sampling=True):
     if not allow_sampling:
         circuit.barrier(qr)
         circuit.i(qr)
-    circuits.append(circuit)
-
-    return circuits
+    return [circuit]
 
 
 def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, default_value=0):
@@ -143,9 +139,9 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
     if delta is not None and places is not None:
         raise TypeError("specify delta or places not both")
 
+    success = True
+    standard_msg = ""
     if places is not None:
-        success = True
-        standard_msg = ""
         # check value for keys in target
         keys1 = set(dict1.keys())
         for key in keys1:
@@ -153,7 +149,7 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if round(abs(val1 - val2), places) != 0:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         # check values for keys in counts, not in target
         keys2 = set(dict2.keys()) - keys1
         for key in keys2:
@@ -161,16 +157,14 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if round(abs(val1 - val2), places) != 0:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         if success is True:
             return
-        standard_msg = standard_msg[:-2] + " within %s places" % places
+        standard_msg = f"{standard_msg[:-2]} within {places} places"
 
     else:
         if delta is None:
             delta = 1e-8  # default delta value
-        success = True
-        standard_msg = ""
         # check value for keys in target
         keys1 = set(dict1.keys())
         for key in keys1:
@@ -178,7 +172,7 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if abs(val1 - val2) > delta:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         # check values for keys in counts, not in target
         keys2 = set(dict2.keys()) - keys1
         for key in keys2:
@@ -186,30 +180,28 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if abs(val1 - val2) > delta:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         if success is True:
             return
-        standard_msg = standard_msg[:-2] + " within %s delta" % delta
+        standard_msg = f"{standard_msg[:-2]} within {delta} delta"
 
     raise Exception(standard_msg)
 
 
 def compare_counts(result, circuits, targets, hex_counts=True, delta=0):
     """Compare counts dictionary to targets."""
-    for pos, test_case in enumerate(zip(circuits, targets)):
+    for test_case in zip(circuits, targets):
         circuit, target = test_case
-        if hex_counts:
-            # Don't use get_counts method which converts hex
-            output = result.data(circuit)["counts"]
-        else:
-            # Use get counts method which converts hex
-            output = result.get_counts(circuit)
+        output = (
+            result.data(circuit)["counts"]
+            if hex_counts
+            else result.get_counts(circuit)
+        )
         assertDictAlmostEqual(output, target, delta=delta)
 
 
 def cx_gate_circuits_deterministic(final_measure=True):
     """CX-gate test circuits with deterministic counts."""
-    circuits = []
     qr = QuantumRegister(2)
     if final_measure:
         cr = ClassicalRegister(2)
@@ -223,8 +215,7 @@ def cx_gate_circuits_deterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # CX10, |00> state
     circuit = QuantumCircuit(*regs)
     circuit.cx(qr[1], qr[0])
@@ -298,9 +289,7 @@ def cx_gate_circuits_deterministic(final_measure=True):
 
 def cx_gate_statevector_deterministic():
     """CX-gate test circuits with deterministic counts."""
-    targets = []
-    # CX01, |00> state
-    targets.append(np.array([1, 0, 0, 0]))
+    targets = [np.array([1, 0, 0, 0])]
     # CX10, |00> state
     targets.append(np.array([1, 0, 0, 0]))
     # CX01.(X^I), |10> state
@@ -320,9 +309,7 @@ def cx_gate_statevector_deterministic():
 
 def cx_gate_unitary_deterministic():
     """CX-gate circuits reference unitaries."""
-    targets = []
-    # CX01, |00> state
-    targets.append(np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]))
+    targets = [np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]])]
     # CX10, |00> state
     targets.append(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
     # CX01.(X^I), |10> state
@@ -346,12 +333,15 @@ def compare_statevector(result, circuits, targets, ignore_phase=False, atol=1e-8
         circuit, target = test_case
         target = Statevector(target)
         output = Statevector(result.get_statevector(circuit))
-        equiv = matrix_equal(
-            output.data, target.data, ignore_phase=ignore_phase, atol=atol, rtol=rtol
-        )
-        if equiv:
+        if equiv := matrix_equal(
+            output.data,
+            target.data,
+            ignore_phase=ignore_phase,
+            atol=atol,
+            rtol=rtol,
+        ):
             return
-        msg = "Circuit ({}/{}): {} != {}".format(pos + 1, len(circuits), output.data, target.data)
+        msg = f"Circuit ({pos + 1}/{len(circuits)}): {output.data} != {target.data}"
         raise Exception(msg)
 
 
@@ -361,12 +351,15 @@ def compare_unitary(result, circuits, targets, ignore_phase=False, atol=1e-8, rt
         circuit, target = test_case
         target = Operator(target)
         output = Operator(result.get_unitary(circuit))
-        equiv = matrix_equal(
-            output.data, target.data, ignore_phase=ignore_phase, atol=atol, rtol=rtol
-        )
-        if equiv:
+        if equiv := matrix_equal(
+            output.data,
+            target.data,
+            ignore_phase=ignore_phase,
+            atol=atol,
+            rtol=rtol,
+        ):
             return
-        msg = "Circuit ({}/{}): {} != {}".format(pos + 1, len(circuits), output.data, target.data)
+        msg = f"Circuit ({pos + 1}/{len(circuits)}): {output.data} != {target.data}"
         raise Exception(msg)
 
 

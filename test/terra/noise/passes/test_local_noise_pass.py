@@ -31,9 +31,7 @@ class TestLocalNoisePass(QiskitAerTestCase):
         qc.sx(1)
 
         def func(op, qubits):
-            if tuple(qubits) == (1,):
-                return HGate()
-            return None
+            return HGate() if tuple(qubits) == (1,) else None
 
         noise_pass = LocalNoisePass(func=func, op_types=SXGate, method="append")
         actual = noise_pass(qc)
@@ -52,9 +50,7 @@ class TestLocalNoisePass(QiskitAerTestCase):
 
         def func(op, qubits):
             # return H for qubit 1 and None for the other qubits
-            if tuple(qubits) == (1,):
-                return HGate()
-            return None
+            return HGate() if tuple(qubits) == (1,) else None
 
         noise_pass = LocalNoisePass(func=func, op_types=SXGate, method="prepend")
         actual = noise_pass(qc)
@@ -72,9 +68,7 @@ class TestLocalNoisePass(QiskitAerTestCase):
         qc.sx(1)
 
         def func(op, qubits):
-            if tuple(qubits) == (1,):
-                return HGate()
-            return None
+            return HGate() if tuple(qubits) == (1,) else None
 
         noise_pass = LocalNoisePass(func=func, op_types=SXGate, method="replace")
         actual = noise_pass(qc)

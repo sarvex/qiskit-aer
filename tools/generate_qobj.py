@@ -17,8 +17,6 @@ from qiskit import QuantumRegister
 def grovers_circuit(final_measure=True, allow_sampling=True):
     """Testing a circuit originated in the Grover algorithm"""
 
-    circuits = []
-
     # 6-qubit grovers
     qr = QuantumRegister(6)
     if final_measure:
@@ -59,9 +57,7 @@ def grovers_circuit(final_measure=True, allow_sampling=True):
     if not allow_sampling:
         circuit.barrier(qr)
         circuit.iden(qr)
-    circuits.append(circuit)
-
-    return circuits
+    return [circuit]
 
 
 if __name__ == "__main__":

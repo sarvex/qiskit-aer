@@ -156,9 +156,9 @@ def _unsupported_errors(qobj_dict):
         AerError: for unsupported features
     """
 
-    # Warnings that don't stop execution
-    warning_str = "{} are an untested feature, and therefore may not behave as expected."
     if _contains_pv_instruction(qobj_dict["experiments"]):
+        # Warnings that don't stop execution
+        warning_str = "{} are an untested feature, and therefore may not behave as expected."
         raise AerError(warning_str.format("PersistentValue instructions"))
 
     error_str = """{} are not directly supported by PulseSimulator. Convert to
@@ -170,8 +170,8 @@ def _unsupported_errors(qobj_dict):
     if _contains_frequency_instruction(qobj_dict["experiments"]):
         raise AerError(error_str.format("shift frequency and/or set frequency instructions"))
 
-    required_str = "{} are required for simulation, and none were specified."
     if not _contains_acquire_instruction(qobj_dict["experiments"]):
+        required_str = "{} are required for simulation, and none were specified."
         raise AerError(required_str.format("Acquire instructions"))
 
 
@@ -219,7 +219,7 @@ def _contains_frequency_instruction(experiments):
     """
     for exp in experiments:
         for inst in exp["instructions"]:
-            if inst["name"] == "setf" or inst["name"] == "shiftf":
+            if inst["name"] in ["setf", "shiftf"]:
                 return True
     return False
 
@@ -281,7 +281,7 @@ def build_pulse_arrays(experiments, pulse_library):
 
     stop = 0
     ind = 1
-    for _, pulse in enumerate(pulse_library):
+    for pulse in pulse_library:
         stop = pulses_idx[ind - 1] + len(pulse["samples"])
         pulses_idx[ind] = stop
         oplist_to_array(format_pulse_samples(pulse["samples"]), pulses, pulses_idx[ind - 1])
@@ -338,9 +338,7 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
     """
     # TO DO: Error check that operations are restricted to qubit list
     max_time = 0
-    structs = {}
-    structs["header"] = experiment["header"]
-    structs["channels"] = OrderedDict()
+    structs = {"header": experiment["header"], "channels": OrderedDict()}
     for chan_name in ham_chans:
         structs["channels"][chan_name] = [[], []]
     structs["acquire"] = []
@@ -370,7 +368,7 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
         if "ch" in inst.keys() and inst["ch"][0] in ["d", "u"]:
             chan_name = inst["ch"].upper()
             if chan_name not in ham_chans.keys():
-                raise ValueError("Channel {} is not in Hamiltonian model".format(inst["ch"]))
+                raise ValueError(f'Channel {inst["ch"]} is not in Hamiltonian model')
 
             # If last pulse on channel was a PV then need to set
             # its final time to be start time of current pulse
@@ -379,10 +377,7 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
                 pv_needs_tf[ham_chans[chan_name]] = 0
 
             # Get condtional info
-            if "conditional" in inst.keys():
-                cond = inst["conditional"]
-            else:
-                cond = -1
+            cond = inst["conditional"] if "conditional" in inst.keys() else -1
             # PV's
             if inst["name"] == "pv":
                 # Get PV index
@@ -393,7 +388,6 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
                 structs["channels"][chan_name][0].extend([inst["t0"] * dt, None, index, cond])
                 pv_needs_tf[ham_chans[chan_name]] = 1
 
-            # ShiftPhase instructions
             elif inst["name"] == "fc":
                 # get current phase value
                 current_phase = 0
@@ -404,14 +398,9 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
                     [inst["t0"] * dt, current_phase + inst["phase"], cond]
                 )
 
-            # SetPhase instruction
             elif inst["name"] == "setp":
                 structs["channels"][chan_name][1].extend([inst["t0"] * dt, inst["phase"], cond])
-            # Delay instruction
-            elif inst["name"] == "delay":
-                pass  # nothing to be done in this case
-            # A standard pulse
-            else:
+            elif inst["name"] != "delay":
                 start = inst["t0"] * dt
                 pulse_int = pulse_to_int[inst["name"]]
                 pulse_width = (pulse_inds[pulse_int + 1] - pulse_inds[pulse_int]) * dt
@@ -420,75 +409,70 @@ def experiment_to_structs(experiment, ham_chans, pulse_inds, pulse_to_int, dt, q
 
                 max_time = max(max_time, stop)
 
-        # Take care of acquires and snapshots (bfuncs added )
-        else:
-            # measurements
-            if inst["name"] == "acquire":
-                # Better way??
-                qlist2 = []
-                mlist2 = []
-                if qubit_list is None:
-                    qlist2 = inst["qubits"]
-                    mlist2 = inst["memory_slot"]
-                else:
-                    for qind, qb in enumerate(inst["qubits"]):
-                        if qb in qubit_list:
-                            qlist2.append(qb)
-                            mlist2.append(inst["memory_slot"][qind])
+        elif inst["name"] == "acquire":
+            # Better way??
+            qlist2 = []
+            mlist2 = []
+            if qubit_list is None:
+                qlist2 = inst["qubits"]
+                mlist2 = inst["memory_slot"]
+            else:
+                for qind, qb in enumerate(inst["qubits"]):
+                    if qb in qubit_list:
+                        qlist2.append(qb)
+                        mlist2.append(inst["memory_slot"][qind])
 
-                acq_vals = [
-                    inst["t0"] * dt,
-                    np.asarray(qlist2, dtype=np.uint32),
-                    np.asarray(mlist2, dtype=np.uint32),
-                ]
-                if "register_slot" in inst.keys():
-                    acq_vals.append(np.asarray(inst["register_slot"], dtype=np.uint32))
-                else:
-                    acq_vals.append(None)
-                structs["acquire"].append(acq_vals)
+            acq_vals = [
+                inst["t0"] * dt,
+                np.asarray(qlist2, dtype=np.uint32),
+                np.asarray(mlist2, dtype=np.uint32),
+            ]
+            if "register_slot" in inst.keys():
+                acq_vals.append(np.asarray(inst["register_slot"], dtype=np.uint32))
+            else:
+                acq_vals.append(None)
+            structs["acquire"].append(acq_vals)
 
-                # update max_time
-                max_time = max(max_time, (inst["t0"] + inst["duration"]) * dt)
+            # update max_time
+            max_time = max(max_time, (inst["t0"] + inst["duration"]) * dt)
 
-                # Add time to tlist
-                if inst["t0"] * dt not in structs["tlist"]:
-                    structs["tlist"].append(inst["t0"] * dt)
+            # Add time to tlist
+            if inst["t0"] * dt not in structs["tlist"]:
+                structs["tlist"].append(inst["t0"] * dt)
 
-            # conditionals
-            elif inst["name"] == "bfunc":
-                bfun_vals = [
-                    inst["t0"] * dt,
-                    inst["mask"],
-                    inst["relation"],
-                    inst["val"],
-                    inst["register"],
-                ]
-                if "memory" in inst.keys():
-                    bfun_vals.append(inst["memory"])
-                else:
-                    bfun_vals.append(None)
+        elif inst["name"] == "bfunc":
+            bfun_vals = [
+                inst["t0"] * dt,
+                inst["mask"],
+                inst["relation"],
+                inst["val"],
+                inst["register"],
+            ]
+            if "memory" in inst.keys():
+                bfun_vals.append(inst["memory"])
+            else:
+                bfun_vals.append(None)
 
-                structs["cond"].append(acq_vals)
+            structs["cond"].append(acq_vals)
 
-                # update max_time
-                max_time = max(max_time, inst["t0"] * dt)
+            # update max_time
+            max_time = max(max_time, inst["t0"] * dt)
 
-                # Add time to tlist
-                if inst["t0"] * dt not in structs["tlist"]:
-                    structs["tlist"].append(inst["t0"] * dt)
+            # Add time to tlist
+            if inst["t0"] * dt not in structs["tlist"]:
+                structs["tlist"].append(inst["t0"] * dt)
 
-            # snapshots
-            elif inst["name"] == "snapshot":
-                if inst["type"] != "state":
-                    raise TypeError("Snapshots must be of type 'state'")
-                structs["snapshot"].append([inst["t0"] * dt, inst["label"]])
+        elif inst["name"] == "snapshot":
+            if inst["type"] != "state":
+                raise TypeError("Snapshots must be of type 'state'")
+            structs["snapshot"].append([inst["t0"] * dt, inst["label"]])
 
-                # Add time to tlist
-                if inst["t0"] * dt not in structs["tlist"]:
-                    structs["tlist"].append(inst["t0"] * dt)
+            # Add time to tlist
+            if inst["t0"] * dt not in structs["tlist"]:
+                structs["tlist"].append(inst["t0"] * dt)
 
-                # update max_time
-                max_time = max(max_time, inst["t0"] * dt)
+            # update max_time
+            max_time = max(max_time, inst["t0"] * dt)
 
     # If any PVs still need time then they are at the end
     # and should just go til final time

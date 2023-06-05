@@ -32,8 +32,6 @@ if not hasattr(QuantumCircuit, "i"):
 
 def kraus_gate_error_circuits():
     """Kraus gate error noise model circuits"""
-    circuits = []
-
     # Repeated amplitude damping to diagonal state
     qr = QuantumRegister(1, "qr")
     cr = ClassicalRegister(1, "cr")
@@ -45,31 +43,22 @@ def kraus_gate_error_circuits():
         circuit.i(qr)
     circuit.barrier(qr)
     circuit.measure(qr, cr)
-    circuits.append(circuit)
-
-    return circuits
+    return [circuit]
 
 
 def kraus_gate_error_noise_models():
     """Kraus gate error noise models"""
-    noise_models = []
-
     # Amplitude damping error on "id"
     error = amplitude_damping_error(0.75, 0.25)
     noise_model = NoiseModel()
     noise_model.add_all_qubit_quantum_error(error, "id")
-    noise_models.append(noise_model)
-
-    return noise_models
+    return [noise_model]
 
 
 def kraus_gate_error_counts(shots, hex_counts=True):
     """Kraus gate error circuits reference counts"""
-    counts_lists = []
-
     # 100% all-qubit Pauli error on "id" gates
     counts = [3 * shots / 4, shots / 4, 0, 0]
-    counts_lists.append(counts)
-
+    counts_lists = [counts]
     # Convert to counts dict
     return [list2dict(i, hex_counts) for i in counts_lists]

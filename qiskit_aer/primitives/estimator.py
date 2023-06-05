@@ -157,11 +157,6 @@ class Estimator(BaseEstimator):
         # Create expectation value experiments.
         if key in self._cache:  # Use a cache
             experiments_dict, obs_maps = self._cache[key]
-            exp_map = self._pre_process_params(circuits, observables, parameter_values, obs_maps)
-            experiments, parameter_binds = self._flatten(experiments_dict, exp_map)
-            post_processings = self._create_post_processing(
-                circuits, observables, parameter_values, obs_maps, exp_map
-            )
         else:
             self._transpile_circuits(circuits)
             circ_obs_map = defaultdict(list)
@@ -173,7 +168,7 @@ class Estimator(BaseEstimator):
             # Group and create measurement circuit
             for circ_ind, obs_indices in circ_obs_map.items():
                 pauli_list = sum(
-                    [self._observables[obs_ind].paulis for obs_ind in obs_indices]
+                    self._observables[obs_ind].paulis for obs_ind in obs_indices
                 ).unique()
                 if self._abelian_grouping:
                     pauli_lists = pauli_list.group_commuting(qubit_wise=True)
@@ -199,16 +194,11 @@ class Estimator(BaseEstimator):
                 experiments_dict[circ_ind] = self._combine_circs(circuit, meas_circuits)
             self._cache[key] = experiments_dict, obs_maps
 
-            exp_map = self._pre_process_params(circuits, observables, parameter_values, obs_maps)
-
-            # Flatten
-            experiments, parameter_binds = self._flatten(experiments_dict, exp_map)
-
-            # Create PostProcessing
-            post_processings = self._create_post_processing(
-                circuits, observables, parameter_values, obs_maps, exp_map
-            )
-
+        exp_map = self._pre_process_params(circuits, observables, parameter_values, obs_maps)
+        experiments, parameter_binds = self._flatten(experiments_dict, exp_map)
+        post_processings = self._create_post_processing(
+            circuits, observables, parameter_values, obs_maps, exp_map
+        )
         # Run experiments
         if experiments:
             results = (

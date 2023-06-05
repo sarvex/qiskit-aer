@@ -29,7 +29,6 @@ from qiskit.quantum_info.states import Statevector
 
 def multiplexer_cx_gate_circuits_deterministic(final_measure=True):
     """multiplexer-gate simulating cx gate, test circuits with deterministic counts."""
-    circuits = []
     qr = QuantumRegister(2)
     if final_measure:
         cr = ClassicalRegister(2)
@@ -45,8 +44,7 @@ def multiplexer_cx_gate_circuits_deterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # CX10, |00> state
     circuit = QuantumCircuit(*regs)
     circuit.append(multiplexer_multi_controlled_x(num_control_qubits), [qr[0], qr[1]])
@@ -120,7 +118,6 @@ def multiplexer_cx_gate_circuits_deterministic(final_measure=True):
 
 def multiplexer_cx_gate_circuits_nondeterministic(final_measure=True):
     """Multiplexer CX-like gate test circuits with non-deterministic counts."""
-    circuits = []
     qr = QuantumRegister(2)
     if final_measure:
         cr = ClassicalRegister(2)
@@ -139,8 +136,7 @@ def multiplexer_cx_gate_circuits_nondeterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # CX10.(H^I), Bell state
     circuit = QuantumCircuit(*regs)
     circuit.h(qr[1])
@@ -169,7 +165,6 @@ def multiplexer_cx_gate_counts_nondeterministic(shots, hex_counts=True):
 def multiplexer_ccx_gate_circuits_deterministic(final_measure=True):
     """multiplexer-gate simulating ccx gate, test circuits with deterministic counts."""
 
-    circuits = []
     qr = QuantumRegister(3)
     if final_measure:
         cr = ClassicalRegister(3)
@@ -186,8 +181,7 @@ def multiplexer_ccx_gate_circuits_deterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # (I^X^X).CCX(0,1,2).(I^X^X) -> |100>
     circuit = QuantumCircuit(*regs)
     circuit.x(qr[0])
@@ -233,7 +227,6 @@ def multiplexer_ccx_gate_circuits_deterministic(final_measure=True):
 
 def multiplexer_ccx_gate_circuits_nondeterministic(final_measure=True):
     """mukltiplexer CCX-like gate test circuits with non-deterministic counts."""
-    circuits = []
     qr = QuantumRegister(3)
     if final_measure:
         cr = ClassicalRegister(3)
@@ -256,8 +249,7 @@ def multiplexer_ccx_gate_circuits_nondeterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # (X^I^I).CCX(2,1,0).(X^H^I) -> |000> + |011>
     circuit = QuantumCircuit(*regs)
     circuit.h(qr[1])

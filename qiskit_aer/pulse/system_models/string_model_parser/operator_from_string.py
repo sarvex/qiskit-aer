@@ -53,9 +53,8 @@ def gen_oper(opname, index, h_osc, h_qub, states=None):
 
     if opname == "P":
         opr_tmp = op_gen.get_oper(opname, dim, states)
-    else:
-        if opr_tmp is None:
-            opr_tmp = op_gen.get_oper(opname, dim)
+    elif opr_tmp is None:
+        opr_tmp = op_gen.get_oper(opname, dim)
 
     # reverse sort by index
     rev_h_osc = sorted(h_osc.items(), key=lambda x: x[0])[::-1]

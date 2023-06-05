@@ -63,12 +63,10 @@ class TestConfigPulseSimulator(common.QiskitAerTestCase):
             elif key == "description":
                 desc = "A Pulse-based simulator configured from the backend: fake_athens"
                 self.assertEqual(sim_dict[key], desc)
-            elif key == "simulator":
-                self.assertTrue(sim_dict[key])
-            elif key == "local":
-                self.assertTrue(sim_dict[key])
             elif key == "parametric_pulses":
                 self.assertEqual(sim_dict[key], [])
+            elif key in ["simulator", "local"]:
+                self.assertTrue(sim_dict[key])
             else:
                 self.assertEqual(sim_dict[key], backend_dict[key])
 
@@ -350,10 +348,11 @@ class TestConfigPulseSimulator(common.QiskitAerTestCase):
             PulseSystemModel: model for qubit system
         """
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["2*np.pi*omega0*0.5*Z0", "2*np.pi*r*0.5*X0||D0"]
-        hamiltonian["vars"] = {"omega0": omega_0, "r": r}
-        hamiltonian["qub"] = {"0": 2}
+        hamiltonian = {
+            "h_str": ["2*np.pi*omega0*0.5*Z0", "2*np.pi*r*0.5*X0||D0"],
+            "vars": {"omega0": omega_0, "r": r},
+            "qub": {"0": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         u_channel_lo = []

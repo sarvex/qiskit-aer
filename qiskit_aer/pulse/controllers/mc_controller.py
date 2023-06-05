@@ -51,7 +51,7 @@ def run_monte_carlo_experiments(pulse_sim_desc, pulse_de_model, solver_options=N
 
     solver_options = PulseSimOptions() if solver_options is None else solver_options
 
-    if not pulse_sim_desc.initial_state.data.ndim != 1:
+    if pulse_sim_desc.initial_state.data.ndim == 1:
         raise Exception("Initial state must be a state vector.")
 
     y0 = pulse_sim_desc.initial_state.data.ravel()
@@ -91,12 +91,7 @@ def run_monte_carlo_experiments(pulse_sim_desc, pulse_de_model, solver_options=N
             **map_kwargs,
         )
 
-        # exp_results is a list for each shot
-        # so transform back to an array of shots
-        exp_res2 = []
-        for exp_shot in exp_res:
-            exp_res2.append(exp_shot[0].tolist())
-
+        exp_res2 = [exp_shot[0].tolist() for exp_shot in exp_res]
         end = time.time()
         exp_times.append(end - start)
         exp_results.append(np.array(exp_res2))

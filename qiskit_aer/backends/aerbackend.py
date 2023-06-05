@@ -125,11 +125,10 @@ class AerBackend(Backend, ABC):
                 "Number of input circuits does not match number of input "
                 "parameter bind dictionaries"
             )
-        parameterizations = [
+        return [
             self._convert_circuit_binds(circuit, parameter_binds[idx])
             for idx, circuit in enumerate(circuits)
         ]
-        return parameterizations
 
     # pylint: disable=arguments-differ
     def run(self, circuits, validate=False, parameter_binds=None, **run_options):
@@ -224,7 +223,7 @@ class AerBackend(Backend, ABC):
                 return self._run_circuits(circuits, parameter_binds, **run_options)
         elif not only_circuits and only_pulse:
             return self._run_qobj(circuits, validate, parameter_binds, **run_options)
-        elif not only_circuits and not only_pulse:
+        elif not only_circuits:
             raise TypeError(
                 "bad input to run() function;"
                 "circuits and schedules cannot be mixed in a single run"
@@ -239,7 +238,7 @@ class AerBackend(Backend, ABC):
         circuits, noise_model = self._compile(circuits, **run_options)
         if parameter_binds:
             run_options["parameterizations"] = self._convert_binds(circuits, parameter_binds)
-        elif not all([len(circuit.parameters) == 0 for circuit in circuits]):
+        elif any(len(circuit.parameters) != 0 for circuit in circuits):
             raise AerError("circuits have parameters but parameter_binds is not specified.")
         config = generate_aer_config(circuits, self.options, **run_options)
 
@@ -425,9 +424,7 @@ class AerBackend(Backend, ABC):
             if "status" in output:
                 msg += f" and returned the following error message:\n{output['status']}"
             logger.warning(msg)
-        if format_result:
-            return self._format_results(output)
-        return output
+        return self._format_results(output) if format_result else output
 
     def _execute_circuits_job(self, circuits, noise_model, config, job_id="", format_result=True):
         """Run a job"""
@@ -485,9 +482,7 @@ class AerBackend(Backend, ABC):
             if "status" in output:
                 msg += f" and returned the following error message:\n{output['status']}"
             logger.warning(msg)
-        if format_result:
-            return self._format_results(output)
-        return output
+        return self._format_results(output) if format_result else output
 
     @staticmethod
     def _format_results(output):
@@ -631,10 +626,7 @@ class AerBackend(Backend, ABC):
 
     def _get_executor(self, **run_options):
         """Get the executor"""
-        if "executor" in run_options:
-            return run_options["executor"]
-        else:
-            return getattr(self._options, "executor", None)
+        return run_options.get("executor", getattr(self._options, "executor", None))
 
     @abstractmethod
     def _execute_qobj(self, qobj):

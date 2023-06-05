@@ -98,13 +98,13 @@ class PulseSystemModel:
         """
 
         if not isinstance(backend, Backend):
-            raise AerError("{} is not a Qiskit backend".format(backend))
+            raise AerError(f"{backend} is not a Qiskit backend")
 
         # get relevant information from backend
         config = backend.configuration()
 
         if not config.open_pulse:
-            raise AerError("{} is not an open pulse backend".format(backend))
+            raise AerError(f"{backend} is not an open pulse backend")
 
         return cls.from_config(config, subsystem_list)
 
@@ -149,9 +149,9 @@ class PulseSystemModel:
                         if len(u_string) > 0:
                             u_string += " + "
                         if isinstance(scale, complex):
-                            u_string += str(scale) + "q" + str(q_idx)
+                            u_string += f"{str(scale)}q{str(q_idx)}"
                         else:
-                            u_string += str(scale[0] + scale[1] * 1j) + "q" + str(q_idx)
+                            u_string += f"{str(scale[0] + scale[1] * 1j)}q{str(q_idx)}"
                     control_channel_labels[u_idx] = {"driven_q": drive_idx, "freq": u_string}
 
         return cls(
@@ -171,11 +171,10 @@ class PulseSystemModel:
         Returns:
             int or None: index of the ControlChannel
         """
-        if label not in self.control_channel_labels:
-            warn("There is no listed ControlChannel matching the provided label.")
-            return None
-        else:
+        if label in self.control_channel_labels:
             return self.control_channel_labels.index(label)
+        warn("There is no listed ControlChannel matching the provided label.")
+        return None
 
     def calculate_channel_frequencies(self, qubit_lo_freq=None):
         """Calculate frequencies for each channel given qubit_lo_freq.
@@ -194,7 +193,7 @@ class PulseSystemModel:
             raise ValueError("qubit_lo_freq is a required function parameter.")
 
         if self.u_channel_lo is None:
-            raise ValueError("{} has no u_channel_lo.".format(self.__class__.__name__))
+            raise ValueError(f"{self.__class__.__name__} has no u_channel_lo.")
 
         # Setup freqs for the channels
         freqs = OrderedDict()

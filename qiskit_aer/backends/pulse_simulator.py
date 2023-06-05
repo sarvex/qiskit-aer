@@ -260,11 +260,11 @@ class PulseSimulator(AerBackend):
         defaults = copy.copy(backend.defaults())
         properties = copy.copy(backend.properties())
 
-        backend_name = "pulse_simulator({})".format(configuration.backend_name)
+        backend_name = f"pulse_simulator({configuration.backend_name})"
         description = "A Pulse-based simulator configured from the backend: "
         description += configuration.backend_name
 
-        sim = cls(
+        return cls(
             configuration=configuration,
             properties=properties,
             defaults=defaults,
@@ -272,7 +272,6 @@ class PulseSimulator(AerBackend):
             description=description,
             **options,
         )
-        return sim
 
     def _execute_qobj(self, qobj):
         """Execute a qobj on the backend.

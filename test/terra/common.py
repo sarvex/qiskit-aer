@@ -65,13 +65,11 @@ class QiskitAerTestCase(FullQiskitTestCase):
         # is set.
         if os.getenv("LOG_LEVEL"):
             # Set up formatter.
-            log_fmt = "{}.%(funcName)s:%(levelname)s:%(asctime)s:" " %(message)s".format(
-                cls.__name__
-            )
+            log_fmt = f"{cls.__name__}.%(funcName)s:%(levelname)s:%(asctime)s: %(message)s"
             formatter = logging.Formatter(log_fmt)
 
             # Set up the file handler.
-            log_file_name = "%s.log" % cls.moduleName
+            log_file_name = f"{cls.moduleName}.log"
             file_handler = logging.FileHandler(log_file_name)
             file_handler.setFormatter(formatter)
             cls.log.addHandler(file_handler)
@@ -100,7 +98,7 @@ class QiskitAerTestCase(FullQiskitTestCase):
         if not success:
             for i, res in enumerate(getattr(result, "results", [])):
                 if res.status != "DONE":
-                    msg += ", (Circuit {}) {}".format(i, res.status)
+                    msg += f", (Circuit {i}) {res.status}"
         self.assertTrue(success, msg=msg)
 
     def assertNotSuccess(self, result):
@@ -120,11 +118,7 @@ class QiskitAerTestCase(FullQiskitTestCase):
         if rng is None:
             rng = np.random.default_rng()
 
-        if num_angles:
-            params = list(rng.random(num_angles))
-        else:
-            params = []
-
+        params = list(rng.random(num_angles)) if num_angles else []
         if has_ctrl_qubits:
             params.append(5)
 
@@ -179,9 +173,9 @@ class QiskitAerTestCase(FullQiskitTestCase):
             circuit, target = test_case
             target = Statevector(target)
             output = Statevector(result.get_statevector(circuit))
-            test_msg = "Circuit ({}/{}):".format(pos + 1, len(circuits))
+            test_msg = f"Circuit ({pos + 1}/{len(circuits)}):"
             with self.subTest(msg=test_msg):
-                msg = " {} != {}".format(output, target)
+                msg = f" {output} != {target}"
                 delta = matrix_equal(
                     output.data, target.data, ignore_phase=ignore_phase, atol=atol, rtol=rtol
                 )
@@ -193,9 +187,9 @@ class QiskitAerTestCase(FullQiskitTestCase):
             circuit, target = test_case
             target = Operator(target)
             output = Operator(result.get_unitary(circuit))
-            test_msg = "Circuit ({}/{}):".format(pos + 1, len(circuits))
+            test_msg = f"Circuit ({pos + 1}/{len(circuits)}):"
             with self.subTest(msg=test_msg):
-                msg = test_msg + " {} != {}".format(output.data, target.data)
+                msg = f"{test_msg} {output.data} != {target.data}"
                 delta = matrix_equal(
                     output.data, target.data, ignore_phase=ignore_phase, atol=atol, rtol=rtol
                 )
@@ -211,9 +205,9 @@ class QiskitAerTestCase(FullQiskitTestCase):
             else:
                 # Use get counts method which converts hex
                 output = result.get_counts(circuit)
-            test_msg = "Circuit ({}/{}):".format(pos + 1, len(circuits))
+            test_msg = f"Circuit ({pos + 1}/{len(circuits)}):"
             with self.subTest(msg=test_msg):
-                msg = test_msg + " {} != {}".format(output, target)
+                msg = f"{test_msg} {output} != {target}"
                 self.assertDictAlmostEqual(output, target, delta=delta, msg=msg)
 
     def compare_memory(self, result, circuits, targets, hex_counts=True):
@@ -227,9 +221,9 @@ class QiskitAerTestCase(FullQiskitTestCase):
             else:
                 # Use get counts method which converts hex
                 output = result.get_memory(circuit)
-            test_msg = "Circuit ({}/{}):".format(pos + 1, len(circuits))
+            test_msg = f"Circuit ({pos + 1}/{len(circuits)}):"
             with self.subTest(msg=test_msg):
-                msg = " {} != {}".format(output, target)
+                msg = f" {output} != {target}"
                 self.assertEqual(output, target, msg=msg)
 
     def compare_result_metadata(self, result, circuits, key, targets):
@@ -239,12 +233,11 @@ class QiskitAerTestCase(FullQiskitTestCase):
         for pos, test_case in enumerate(zip(circuits, targets)):
             circuit, target = test_case
             value = None
-            metadata = getattr(result.results[0], "metadata")
-            if metadata:
+            if metadata := getattr(result.results[0], "metadata"):
                 value = metadata.get(key)
-            test_msg = "Circuit ({}/{}):".format(pos + 1, len(circuits))
+            test_msg = f"Circuit ({pos + 1}/{len(circuits)}):"
             with self.subTest(msg=test_msg):
-                msg = " metadata {} value {} != {}".format(key, value, target)
+                msg = f" metadata {key} value {value} != {target}"
                 self.assertEqual(value, target, msg=msg)
 
     def assertDictAlmostEqual(
@@ -278,9 +271,9 @@ class QiskitAerTestCase(FullQiskitTestCase):
         if delta is not None and places is not None:
             raise TypeError("specify delta or places not both")
 
+        success = True
+        standard_msg = ""
         if places is not None:
-            success = True
-            standard_msg = ""
             # check value for keys in target
             keys1 = set(dict1.keys())
             for key in keys1:
@@ -288,11 +281,7 @@ class QiskitAerTestCase(FullQiskitTestCase):
                 val2 = dict2.get(key, default_value)
                 if round(abs(val1 - val2), places) != 0:
                     success = False
-                    standard_msg += "(%s: %s != %s), " % (
-                        safe_repr(key),
-                        safe_repr(val1),
-                        safe_repr(val2),
-                    )
+                    standard_msg += f"({safe_repr(key)}: {safe_repr(val1)} != {safe_repr(val2)}), "
             # check values for keys in counts, not in target
             keys2 = set(dict2.keys()) - keys1
             for key in keys2:
@@ -300,20 +289,14 @@ class QiskitAerTestCase(FullQiskitTestCase):
                 val2 = dict2.get(key, default_value)
                 if round(abs(val1 - val2), places) != 0:
                     success = False
-                    standard_msg += "(%s: %s != %s), " % (
-                        safe_repr(key),
-                        safe_repr(val1),
-                        safe_repr(val2),
-                    )
+                    standard_msg += f"({safe_repr(key)}: {safe_repr(val1)} != {safe_repr(val2)}), "
             if success is True:
                 return
-            standard_msg = standard_msg[:-2] + " within %s places" % places
+            standard_msg = f"{standard_msg[:-2]} within {places} places"
 
         else:
             if delta is None:
                 delta = 1e-8  # default delta value
-            success = True
-            standard_msg = ""
             # check value for keys in target
             keys1 = set(dict1.keys())
             for key in keys1:
@@ -321,11 +304,7 @@ class QiskitAerTestCase(FullQiskitTestCase):
                 val2 = dict2.get(key, default_value)
                 if abs(val1 - val2) > delta:
                     success = False
-                    standard_msg += "(%s: %s != %s), " % (
-                        safe_repr(key),
-                        safe_repr(val1),
-                        safe_repr(val2),
-                    )
+                    standard_msg += f"({safe_repr(key)}: {safe_repr(val1)} != {safe_repr(val2)}), "
             # check values for keys in counts, not in target
             keys2 = set(dict2.keys()) - keys1
             for key in keys2:
@@ -333,14 +312,10 @@ class QiskitAerTestCase(FullQiskitTestCase):
                 val2 = dict2.get(key, default_value)
                 if abs(val1 - val2) > delta:
                     success = False
-                    standard_msg += "(%s: %s != %s), " % (
-                        safe_repr(key),
-                        safe_repr(val1),
-                        safe_repr(val2),
-                    )
+                    standard_msg += f"({safe_repr(key)}: {safe_repr(val1)} != {safe_repr(val2)}), "
             if success is True:
                 return
-            standard_msg = standard_msg[:-2] + " within %s delta" % delta
+            standard_msg = f"{standard_msg[:-2]} within {delta} delta"
 
         msg = self._formatMessage(msg, standard_msg)
         raise self.failureException(msg)
@@ -387,7 +362,7 @@ def generate_random_circuit(n_qubits, n_gates, gate_types):
         op_name = choice(gate_types)
         if op_name == "id":
             op_name = "iden"
-        operation = eval("QuantumCircuit." + op_name)
+        operation = eval(f"QuantumCircuit.{op_name}")
 
         # Check if operation is one of u1, u2, u3
         if op_name[0] == "u" and op_name[1].isdigit():
@@ -412,11 +387,7 @@ def generate_random_circuit(n_qubits, n_gates, gate_types):
         # Measurement operation
         # In all measure operations, the classical register is not random,
         # but has the same index as the quantum register
-        if op_name == "measure":
-            classical_regs = [cr[i] for i in qubit_indices]
-        else:
-            classical_regs = []
-
+        classical_regs = [cr[i] for i in qubit_indices] if op_name == "measure" else []
         # Add operation to the circuit
         operation(circuit, *angles, *qubits, *classical_regs)
 

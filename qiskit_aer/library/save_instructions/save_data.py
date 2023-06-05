@@ -113,7 +113,7 @@ class SaveAverageData(SaveData):
         else:
             subtype = "average"
         if conditional:
-            subtype = "c_" + subtype
+            subtype = f"c_{subtype}"
         super().__init__(name, num_qubits, label, subtype=subtype, params=params)
 
 
@@ -137,5 +137,5 @@ class SaveSingleData(SaveData):
         """
         subtype = "list" if pershot else "single"
         if conditional:
-            subtype = "c_" + subtype
+            subtype = f"c_{subtype}"
         super().__init__(name, num_qubits, label, subtype=subtype, params=params)

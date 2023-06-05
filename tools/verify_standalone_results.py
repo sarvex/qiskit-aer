@@ -40,9 +40,9 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
     if delta is not None and places is not None:
         raise TypeError("specify delta or places not both")
 
+    success = True
+    standard_msg = ""
     if places is not None:
-        success = True
-        standard_msg = ""
         # check value for keys in target
         keys1 = set(dict1.keys())
         for key in keys1:
@@ -50,7 +50,7 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if round(abs(val1 - val2), places) != 0:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         # check values for keys in counts, not in target
         keys2 = set(dict2.keys()) - keys1
         for key in keys2:
@@ -58,16 +58,14 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if round(abs(val1 - val2), places) != 0:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         if success is True:
             return
-        standard_msg = standard_msg[:-2] + " within %s places" % places
+        standard_msg = f"{standard_msg[:-2]} within {places} places"
 
     else:
         if delta is None:
             delta = 1e-8  # default delta value
-        success = True
-        standard_msg = ""
         # check value for keys in target
         keys1 = set(dict1.keys())
         for key in keys1:
@@ -75,7 +73,7 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if abs(val1 - val2) > delta:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         # check values for keys in counts, not in target
         keys2 = set(dict2.keys()) - keys1
         for key in keys2:
@@ -83,10 +81,10 @@ def assertDictAlmostEqual(dict1, dict2, delta=None, msg=None, places=None, defau
             val2 = dict2.get(key, default_value)
             if abs(val1 - val2) > delta:
                 success = False
-                standard_msg += "(%s: %s != %s), " % (key, val1, val2)
+                standard_msg += f"({key}: {val1} != {val2}), "
         if success is True:
             return
-        standard_msg = standard_msg[:-2] + " within %s delta" % delta
+        standard_msg = f"{standard_msg[:-2]} within {delta} delta"
 
     raise Exception(standard_msg)
 

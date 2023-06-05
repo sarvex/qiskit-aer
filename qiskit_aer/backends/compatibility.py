@@ -30,9 +30,7 @@ def _forward_attr(attr):
     # Pass Iterable magic methods on to the Numpy array.  We can't pass
     # `__getitem__` (and consequently `__setitem__`, `__delitem__`) on because
     # `Statevector` implements them itself.
-    if attr[:2] == "__" or attr in ["_data", "_op_shape"]:
-        return False
-    return True
+    return attr[:2] != "__" and attr not in ["_data", "_op_shape"]
 
 
 def _deprecation_warning(instance, instances_name):

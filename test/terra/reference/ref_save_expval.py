@@ -97,7 +97,6 @@ def save_expval_circuits(
 ):
     """SaveExpectationValue test circuits with deterministic counts"""
 
-    circuits = []
     num_qubits = 2
     qr = QuantumRegister(num_qubits)
     cr = ClassicalRegister(num_qubits)
@@ -135,8 +134,7 @@ def save_expval_circuits(
                 label=label,
                 pershot=pershot,
             )
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # State |00> + |11>
     circuit = QuantumCircuit(*regs)
     circuit.h(0)
@@ -199,23 +197,18 @@ def save_expval_circuits(
 
 def save_expval_counts(shots):
     """SaveExpectationValue test circuits reference counts."""
-    targets = []
-    # State |+1>
-    targets.append({"0x1": shots / 2, "0x3": shots / 2})
-    # State |00> + |11>
-    targets.append({"0x0": shots / 2, "0x3": shots / 2})
-    # State |01> -i|01>
-    targets.append({"0x1": shots / 2, "0x2": shots / 2})
-    return targets
+    return [
+        {"0x1": shots / 2, "0x3": shots / 2},
+        {"0x0": shots / 2, "0x3": shots / 2},
+        {"0x1": shots / 2, "0x2": shots / 2},
+    ]
 
 
 def save_expval_final_statevecs():
     """SaveExpectationValue test circuits pre meas statevecs"""
-    # Get pre-measurement statevectors
-    statevecs = []
     # State |+1>
     statevec = Statevector.from_label("+1")
-    statevecs.append(statevec)
+    statevecs = [statevec]
     # State |00> + |11>
     statevec = (Statevector.from_label("00") + Statevector.from_label("11")) / np.sqrt(2)
     statevecs.append(statevec)
@@ -229,9 +222,10 @@ def save_expval_pre_meas_values():
     """SaveExpectationValue test circuits reference final probs"""
     targets = []
     for statevec in save_expval_final_statevecs():
-        values = {}
-        for label, (mat, qubits) in save_expval_params().items():
-            values[label] = statevec.data.conj().dot(statevec.evolve(mat, qubits).data)
+        values = {
+            label: statevec.data.conj().dot(statevec.evolve(mat, qubits).data)
+            for label, (mat, qubits) in save_expval_params().items()
+        }
         targets.append(values)
     return targets
 
