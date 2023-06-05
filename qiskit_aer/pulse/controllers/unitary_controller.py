@@ -82,7 +82,7 @@ def run_unitary_experiments(pulse_sim_desc, pulse_de_model, solver_options=None)
 
     solver_options = PulseSimOptions() if solver_options is None else solver_options
 
-    if not pulse_sim_desc.initial_state.data.ndim != 1:
+    if pulse_sim_desc.initial_state.data.ndim == 1:
         raise Exception("Initial state must be a state vector.")
 
     y0 = pulse_sim_desc.initial_state.data.ravel()
@@ -149,7 +149,7 @@ def unitary_evolution(exp, y0, pulse_de_model, solver_options=None):
         if ODE.successful():
             psi = ODE.y / dznrm2(ODE.y)
         else:
-            err_msg = "ODE method exited with status: %s" % ODE.return_code()
+            err_msg = f"ODE method exited with status: {ODE.return_code()}"
             raise Exception(err_msg)
 
     # apply final rotation to come out of rotating frame

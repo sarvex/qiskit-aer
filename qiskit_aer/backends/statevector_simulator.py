@@ -371,8 +371,8 @@ class StatevectorSimulator(AerBackend):
             qobj.config.shots = 1
 
         for experiment in qobj.experiments:
-            exp_name = experiment.header.name
             if getattr(experiment.config, "shots", 1) != 1:
+                exp_name = experiment.header.name
                 logger.info(
                     '"%s" only supports 1 shot. ' 'Setting shots=1 for circuit "%s".',
                     name,

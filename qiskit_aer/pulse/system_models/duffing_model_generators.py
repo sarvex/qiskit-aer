@@ -389,10 +389,7 @@ def _arg_to_iterable(arg):
     if isinstance(arg, (int, str)):
         return [arg]
 
-    if isinstance(arg, Iterable):
-        return arg
-
-    return [arg]
+    return arg if isinstance(arg, Iterable) else [arg]
 
 
 # Helper classes
@@ -433,8 +430,7 @@ class CouplingGraph:
         # created the sorted list representation
         graph_list = []
         for edge in self.graph:
-            edge_list = list(edge)
-            edge_list.sort()
+            edge_list = sorted(edge)
             graph_list.append(tuple(edge_list))
 
         graph_list.sort()
@@ -443,9 +439,7 @@ class CouplingGraph:
         # create the sorted_two_way_graph
         two_way_graph_list = []
         for edge in self.sorted_graph:
-            two_way_graph_list.append(edge)
-            two_way_graph_list.append((edge[1], edge[0]))
-
+            two_way_graph_list.extend((edge, (edge[1], edge[0])))
         self.sorted_two_way_graph = two_way_graph_list
 
         # create the dictionary version
@@ -462,8 +456,7 @@ class CouplingGraph:
         Returns:
             int: index of edge
         """
-        edge_list = list(edge)
-        edge_list.sort()
+        edge_list = sorted(edge)
         return self.sorted_graph.index(tuple(edge_list))
 
     def two_way_edge_index(self, directed_edge):

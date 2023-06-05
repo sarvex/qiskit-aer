@@ -98,11 +98,7 @@ class TestOptions(SimulatorTestCase):
         qc = transpile(qc, backend)
 
         # Target simulation method
-        if method == "automatic":
-            target = "stabilizer"
-        else:
-            target = method
-
+        target = "stabilizer" if method == "automatic" else method
         result = backend.run(qc).result()
         value = result.results[0].metadata.get("method", None)
         self.assertEqual(value, target)
@@ -228,7 +224,7 @@ class TestOptions(SimulatorTestCase):
         # approximation actually truncates something
         n = 10
         circuit = QuantumCircuit(n)
-        for times in range(2):
+        for _ in range(2):
             for i in range(0, n, 2):
                 circuit.unitary(random_unitary(4), [i, i + 1])
             for i in range(1, n - 1):
@@ -269,7 +265,7 @@ class TestOptions(SimulatorTestCase):
         self.assertNotSuccess(result)
         self.assertTrue("Insufficient memory" in result.results[0].status)
         self.assertTrue(
-            "Required memory: {}".format(2 ** (n - 20) * 16) in result.results[0].status
+            f"Required memory: {2**(n - 20) * 16}" in result.results[0].status
         )
 
         n = 30
@@ -282,9 +278,9 @@ class TestOptions(SimulatorTestCase):
         self.assertNotSuccess(result)
         self.assertTrue("Insufficient memory" in result.results[0].status)
         self.assertTrue(
-            "Required memory: {}".format(2 ** (n - 20) * 16) in result.results[0].status
+            f"Required memory: {2**(n - 20) * 16}" in result.results[0].status
         )
-        self.assertTrue("max memory: {}".format(max_memory_mb) in result.results[0].status)
+        self.assertTrue(f"max memory: {max_memory_mb}" in result.results[0].status)
 
     @data(
         "automatic",

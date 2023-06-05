@@ -31,10 +31,7 @@ def is_method_available(backend, method):
     if isinstance(backend, str):
         backend = AerProvider().get_backend(backend)
     avail = backend.available_methods()
-    if method in avail:
-        return True
-    else:
-        return False
+    return method in avail
 
 
 def requires_method(backend, method):
@@ -47,7 +44,7 @@ def requires_method(backend, method):
     Returns:
         decorator: the decorator for testing input method.
     """
-    reason = 'method "{}" is unavailable, skipping test'.format(method)
+    reason = f'method "{method}" is unavailable, skipping test'
     skip = not is_method_available(backend, method)
     return unittest.skipIf(skip, reason)
 

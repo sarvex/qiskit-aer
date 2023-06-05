@@ -105,7 +105,7 @@ class TestDuffingModelGenerators(QiskitAerTestCase):
         for expected_string, expected_op in expected_terms:
             idx = 0
             found = False
-            while idx < len(ham_model._system) and found is False:
+            while idx < len(ham_model._system) and not found:
                 op, string = ham_model._system[idx]
                 if expected_string == string:
                     found = True
@@ -222,7 +222,7 @@ class TestDuffingModelGenerators(QiskitAerTestCase):
         for expected_string, expected_op in expected_terms:
             idx = 0
             found = False
-            while idx < len(ham_model._system) and found is False:
+            while idx < len(ham_model._system) and not found:
                 op, string = ham_model._system[idx]
                 if expected_string == string:
                     found = True
@@ -392,7 +392,7 @@ class TestDuffingModelGenerators(QiskitAerTestCase):
         for expected_string, expected_op in expected_terms:
             idx = 0
             found = False
-            while idx < len(ham_model._system) and found is False:
+            while idx < len(ham_model._system) and not found:
                 op, string = ham_model._system[idx]
                 if expected_string == string:
                     found = True

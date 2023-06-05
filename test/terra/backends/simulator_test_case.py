@@ -34,10 +34,10 @@ class SimulatorTestCase(QiskitAerTestCase):
         """Return AerSimulator backend using current class options"""
         sim_options = self.OPTIONS.copy()
         for key, val in options.items():
-            if "device" == key and "cuStateVec" in val:
+            if key == "device" and "cuStateVec" in val:
                 sim_options["device"] = "GPU"
                 sim_options["cuStateVec_enable"] = True
-            elif "device" == key and "batch" in val:
+            elif key == "device" and "batch" in val:
                 sim_options["device"] = "GPU"
                 sim_options["batched_shots_gpu"] = True
             else:
@@ -50,10 +50,7 @@ def supported_methods(methods, *other_args, product=True):
     method_args = _method_device(methods)
     if other_args:
         data_args = []
-        if product:
-            items = list(it.product(*other_args))
-        else:
-            items = list(zip(*other_args))
+        items = list(it.product(*other_args)) if product else list(zip(*other_args))
         for method, device in method_args:
             for args in items:
                 data_args.append((method, device, *args))
@@ -86,10 +83,12 @@ def _method_device(methods):
     for method in methods:
         if method in available_methods:
             if method in gpu_methods:
-                if "tensor_network" == method:
-                    for device in available_devices:
-                        if device == "GPU":
-                            data_args.append((method, "GPU"))
+                if method == "tensor_network":
+                    data_args.extend(
+                        (method, "GPU")
+                        for device in available_devices
+                        if device == "GPU"
+                    )
                 else:
                     for device in available_devices:
                         data_args.append((method, device))
@@ -99,7 +98,7 @@ def _method_device(methods):
                     # add test cases for cuStateVec if available using special device = 'GPU_cuStateVec'
                     #'GPU_cuStateVec' is used only inside tests not available in Aer
                     # and this is converted to "device='GPU'" and option "cuStateVec_enalbe = True" is added
-                    if cuStateVec and "tensor_network" != method:
+                    if cuStateVec:
                         data_args.append((method, "GPU_cuStateVec"))
             else:
                 data_args.append((method, "CPU"))
@@ -108,19 +107,18 @@ def _method_device(methods):
 
 def check_cuStateVec(devices):
     """Return if the system supports cuStateVec or not"""
-    if "GPU" in devices:
-        dummy_circ = QuantumCircuit(1)
-        dummy_circ.i(0)
-        qobj = assemble(
-            dummy_circ,
-            optimization_level=0,
-            shots=1,
-            method="statevector",
-            device="GPU",
-            cuStateVec_enable=True,
-        )
-        # run dummy circuit to check if Aer is built with cuStateVec
-        result = cpp_execute_qobj(aer_controller_execute(), qobj)
-        return result.get("success", False)
-    else:
+    if "GPU" not in devices:
         return False
+    dummy_circ = QuantumCircuit(1)
+    dummy_circ.i(0)
+    qobj = assemble(
+        dummy_circ,
+        optimization_level=0,
+        shots=1,
+        method="statevector",
+        device="GPU",
+        cuStateVec_enable=True,
+    )
+    # run dummy circuit to check if Aer is built with cuStateVec
+    result = cpp_execute_qobj(aer_controller_execute(), qobj)
+    return result.get("success", False)

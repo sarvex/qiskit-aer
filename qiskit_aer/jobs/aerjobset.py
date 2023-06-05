@@ -140,8 +140,7 @@ class AerJobSet(Job):
                 specified timeout.
 
         """
-        res = self.worker_results(worker=None, timeout=timeout)
-        return res
+        return self.worker_results(worker=None, timeout=timeout)
 
     @requires_submit
     def worker_results(
@@ -175,15 +174,14 @@ class AerJobSet(Job):
         if isinstance(worker, int):
             res = self._get_worker_result(worker, timeout)
         elif isinstance(worker, Iterable):
-            _res = []
-            for worker_id in worker:
-                _res.append(self._get_worker_result(worker_id, timeout))
+            _res = [self._get_worker_result(worker_id, timeout) for worker_id in worker]
             res = self._combine_results(_res)
         else:
             for _worker_id_list in self._combined_result:
-                _res = []
-                for worker_id in _worker_id_list:
-                    _res.append(self._get_worker_result(worker_id, timeout))
+                _res = [
+                    self._get_worker_result(worker_id, timeout)
+                    for worker_id in _worker_id_list
+                ]
                 res.append(self._combine_results(_res))
 
         res = self._accumulate_experiment_results(res)
@@ -221,7 +219,7 @@ class AerJobSet(Job):
                     logger.warning("AerJobSet %s did not return a result", aer_job.name())
         except JobError:
             raise JobError(
-                "Timeout while waiting for the results of experiment {}".format(aer_job.name())
+                f"Timeout while waiting for the results of experiment {aer_job.name()}"
             )
 
         if timeout:
@@ -238,8 +236,12 @@ class AerJobSet(Job):
         _merge_result_list = []
 
         for _result in result_list[1:]:
-            for _master_result, _sub_result in zip(master_result.results, _result.results):
-                _merge_result_list.append(self._merge_exp(_master_result, _sub_result))
+            _merge_result_list.extend(
+                self._merge_exp(_master_result, _sub_result)
+                for _master_result, _sub_result in zip(
+                    master_result.results, _result.results
+                )
+            )
         master_result.results = _merge_result_list
         return master_result
 
@@ -311,26 +313,22 @@ class AerJobSet(Job):
         if not results:
             raise JobError("Results cannot be combined - no results.")
 
-        # find first non-null result and copy it's config
-        _result = next((r for r in results if r is not None), None)
-
-        if _result:
-            combined_result = {
-                "backend_name": _result.backend_name,
-                "backend_version": _result.backend_version,
-                "qobj_id": _result.qobj_id,
-                "job_id": _result.job_id,
-                "success": _result.success,
-            }
-            combined_result["results"] = []
-            if hasattr(_result, "status"):
-                combined_result["status"] = _result.status
-            if hasattr(_result, "header"):
-                combined_result["header"] = _result.header.to_dict()
-            combined_result.update(_result._metadata)
-        else:
+        if not (_result := next((r for r in results if r is not None), None)):
             raise JobError("Results cannot be combined - no results.")
 
+        combined_result = {
+            "backend_name": _result.backend_name,
+            "backend_version": _result.backend_version,
+            "qobj_id": _result.qobj_id,
+            "job_id": _result.job_id,
+            "success": _result.success,
+            "results": [],
+        }
+        if hasattr(_result, "status"):
+            combined_result["status"] = _result.status
+        if hasattr(_result, "header"):
+            combined_result["header"] = _result.header.to_dict()
+        combined_result |= _result._metadata
         for each_result in results:
             if each_result is not None:
                 combined_result["results"].extend(x.to_dict() for x in each_result.results)
@@ -397,16 +395,17 @@ class AerJobSet(Job):
             experiment = experiment.name
         job_list = []
         for job in self._futures:
-            for i, exp in enumerate(job.qobj().experiments):
-                if hasattr(exp.header, "name") and exp.header.name == experiment:
-                    job_list.append(i)
-
+            job_list.extend(
+                i
+                for i, exp in enumerate(job.qobj().experiments)
+                if hasattr(exp.header, "name") and exp.header.name == experiment
+            )
         if len(job_list) == 1:
             return job_list[0]
         elif len(job_list) > 1:
             return job_list
 
-        raise JobError("Unable to find the job for experiment {}.".format(experiment))
+        raise JobError(f"Unable to find the job for experiment {experiment}.")
 
     @requires_submit
     def worker_job(self, worker: Union[None, int, Iterable[int]]) -> Union[AerJob, List[AerJob]]:
@@ -426,8 +425,7 @@ class AerJobSet(Job):
         if isinstance(worker, int):
             return self._futures[worker]
         elif isinstance(worker, Iterable):
-            for worker_id in worker:
-                aer_jobs.append(self._futures[worker_id])
+            aer_jobs.extend(self._futures[worker_id] for worker_id in worker)
             return aer_jobs
         else:
             return self._futures

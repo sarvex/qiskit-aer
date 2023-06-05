@@ -792,9 +792,7 @@ class AerSimulator(AerBackend):
             if not noise_model.is_ideal():
                 options["noise_model"] = noise_model
 
-        # Initialize simulator
-        sim = cls(configuration=configuration, properties=properties, **options)
-        return sim
+        return cls(configuration=configuration, properties=properties, **options)
 
     def available_methods(self):
         """Return the available simulation methods."""
@@ -825,8 +823,9 @@ class AerSimulator(AerBackend):
 
     def _execute_circuits(self, aer_circuits, noise_model, config):
         """Execute circuits on the backend."""
-        ret = cpp_execute_circuits(self._controller, aer_circuits, noise_model, config)
-        return ret
+        return cpp_execute_circuits(
+            self._controller, aer_circuits, noise_model, config
+        )
 
     def _execute_qobj(self, qobj):
         """Execute a qobj on the backend.
@@ -860,13 +859,10 @@ class AerSimulator(AerBackend):
         Warn if no measure or save instructions in run circuits.
         """
         for experiment in qobj.experiments:
-            # If circuit does not contain measurement or save
-            # instructions raise a warning
-            no_data = True
-            for op in experiment.instructions:
-                if op.name == "measure" or op.name[:5] == "save_":
-                    no_data = False
-                    break
+            no_data = not any(
+                op.name == "measure" or op.name[:5] == "save_"
+                for op in experiment.instructions
+            )
             if no_data:
                 logger.warning(
                     'No measure or save instruction in circuit "%s": ' "results will be empty.",
@@ -893,9 +889,7 @@ class AerSimulator(AerBackend):
         else:
             basis_gates = method_gates
 
-        # Compute intersection with noise model basis gates
-        noise_model = getattr(self.options, "noise_model", None)
-        if noise_model:
+        if noise_model := getattr(self.options, "noise_model", None):
             noise_gates = noise_model.basis_gates
             basis_gates = basis_gates.intersection(noise_gates)
         else:

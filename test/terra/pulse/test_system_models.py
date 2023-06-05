@@ -31,31 +31,31 @@ class BaseTestPulseSystemModel(QiskitAerTestCase):
     def setUp(self):
         super().setUp()
         self._default_qubit_lo_freq = [4.9, 5.0]
-        self._u_channel_lo = []
-        self._u_channel_lo.append([UchannelLO(0, 1.0 + 0.0j)])
+        self._u_channel_lo = [[UchannelLO(0, 1.0 + 0.0j)]]
         self._u_channel_lo.append([UchannelLO(0, -1.0 + 0.0j), UchannelLO(1, 1.0 + 0.0j)])
 
     def _simple_system_model(self, v0=5.0, v1=5.1, j=0.01, r=0.02, alpha0=-0.33, alpha1=-0.33):
-        hamiltonian = {}
-        hamiltonian["h_str"] = [
-            "np.pi*(2*v0-alpha0)*O0",
-            "np.pi*alpha0*O0*O0",
-            "2*np.pi*r*X0||D0",
-            "2*np.pi*r*X0||U1",
-            "2*np.pi*r*X1||U0",
-            "np.pi*(2*v1-alpha1)*O1",
-            "np.pi*alpha1*O1*O1",
-            "2*np.pi*r*X1||D1",
-            "2*np.pi*j*(Sp0*Sm1+Sm0*Sp1)",
-        ]
-        hamiltonian["qub"] = {"0": 3, "1": 3}
-        hamiltonian["vars"] = {
-            "v0": v0,
-            "v1": v1,
-            "j": j,
-            "r": r,
-            "alpha0": alpha0,
-            "alpha1": alpha1,
+        hamiltonian = {
+            "h_str": [
+                "np.pi*(2*v0-alpha0)*O0",
+                "np.pi*alpha0*O0*O0",
+                "2*np.pi*r*X0||D0",
+                "2*np.pi*r*X0||U1",
+                "2*np.pi*r*X1||U0",
+                "np.pi*(2*v1-alpha1)*O1",
+                "np.pi*alpha1*O1*O1",
+                "2*np.pi*r*X1||D1",
+                "2*np.pi*j*(Sp0*Sm1+Sm0*Sp1)",
+            ],
+            "qub": {"0": 3, "1": 3},
+            "vars": {
+                "v0": v0,
+                "v1": v1,
+                "j": j,
+                "r": r,
+                "alpha0": alpha0,
+                "alpha1": alpha1,
+            },
         }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
@@ -151,11 +151,10 @@ class TestPulseSystemModel(BaseTestPulseSystemModel):
         """
         u_lo_freqs = []
         for scales in self._u_channel_lo:
-            u_lo_freq = 0
-            for u_lo_idx in scales:
-                qfreq = qubit_lo_freq[u_lo_idx.q]
-                qscale = u_lo_idx.scale.real
-                u_lo_freq += qfreq * qscale
+            u_lo_freq = sum(
+                qubit_lo_freq[u_lo_idx.q] * u_lo_idx.scale.real
+                for u_lo_idx in scales
+            )
             u_lo_freqs.append(u_lo_freq)
         return u_lo_freqs
 
@@ -174,28 +173,28 @@ class TestHamiltonianModel(QiskitAerTestCase):
         alpha0 = -0.33
         alpha1 = -0.33
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = [
-            "np.pi*(2*v0-alpha0)*O0",
-            "np.pi*alpha0*O0*O0",
-            "2*np.pi*r*X0||D0",
-            "2*np.pi*r*X0||U1",
-            "2*np.pi*r*X1||U0",
-            "np.pi*(2*v1-alpha1)*O1",
-            "np.pi*alpha1*O1*O1",
-            "2*np.pi*r*X1||D1",
-            "2*np.pi*j*(Sp0*Sm1+Sm0*Sp1)",
-        ]
-        hamiltonian["qub"] = {"0": 3, "1": 3}
-        hamiltonian["vars"] = {
-            "v0": v0,
-            "v1": v1,
-            "j": j,
-            "r": r,
-            "alpha0": alpha0,
-            "alpha1": alpha1,
+        hamiltonian = {
+            "h_str": [
+                "np.pi*(2*v0-alpha0)*O0",
+                "np.pi*alpha0*O0*O0",
+                "2*np.pi*r*X0||D0",
+                "2*np.pi*r*X0||U1",
+                "2*np.pi*r*X1||U0",
+                "np.pi*(2*v1-alpha1)*O1",
+                "np.pi*alpha1*O1*O1",
+                "2*np.pi*r*X1||D1",
+                "2*np.pi*j*(Sp0*Sm1+Sm0*Sp1)",
+            ],
+            "qub": {"0": 3, "1": 3},
+            "vars": {
+                "v0": v0,
+                "v1": v1,
+                "j": j,
+                "r": r,
+                "alpha0": alpha0,
+                "alpha1": alpha1,
+            },
         }
-
         # restrict to qubit 0 and verify some properties
         ham_model0 = HamiltonianModel.from_dict(hamiltonian, subsystem_list=[0])
         evals_expected0 = np.array(

@@ -68,8 +68,8 @@ class TestNoiseTransformer(QiskitAerTestCase):
     def assertNoiseDictsAlmostEqual(self, lhs, rhs, places=3):
         keys = set(lhs.keys()).union(set(rhs.keys()))
         for key in keys:
-            self.assertTrue(key in lhs.keys(), msg="Key {} is missing from lhs".format(key))
-            self.assertTrue(key in rhs.keys(), msg="Key {} is missing from rhs".format(key))
+            self.assertTrue(key in lhs.keys(), msg=f"Key {key} is missing from lhs")
+            self.assertTrue(key in rhs.keys(), msg=f"Key {key} is missing from rhs")
             if isinstance(lhs[key], dict):
                 self.assertNoiseDictsAlmostEqual(lhs[key], rhs[key], places=places)
             else:
@@ -86,13 +86,15 @@ class TestNoiseTransformer(QiskitAerTestCase):
             self.assertAlmostEqual(
                 lhs.get(key),
                 rhs.get(key),
-                msg="Not almost equal for key {}: {} !~ {}".format(key, lhs.get(key), rhs.get(key)),
+                msg=f"Not almost equal for key {key}: {lhs.get(key)} !~ {rhs.get(key)}",
                 places=places,
             )
 
     def assertListAlmostEqual(self, lhs, rhs, places=None):
         self.assertEqual(
-            len(lhs), len(rhs), msg="List lengths differ: {} != {}".format(len(lhs), len(rhs))
+            len(lhs),
+            len(rhs),
+            msg=f"List lengths differ: {len(lhs)} != {len(rhs)}",
         )
         for i in range(len(lhs)):
             if isinstance(lhs[i], numpy.ndarray) and isinstance(rhs[i], numpy.ndarray):
@@ -101,7 +103,7 @@ class TestNoiseTransformer(QiskitAerTestCase):
                 self.assertAlmostEqual(lhs[i], rhs[i], places=places)
 
     def assertMatricesAlmostEqual(self, lhs, rhs, places=None):
-        self.assertEqual(lhs.shape, rhs.shape, "Marix shapes differ: {} vs {}".format(lhs, rhs))
+        self.assertEqual(lhs.shape, rhs.shape, f"Marix shapes differ: {lhs} vs {rhs}")
         n, m = lhs.shape
         for x in range(n):
             for y in range(m):
@@ -109,7 +111,7 @@ class TestNoiseTransformer(QiskitAerTestCase):
                     lhs[x, y],
                     rhs[x, y],
                     places=places,
-                    msg="Matrices {} and {} differ on ({}, {})".format(lhs, rhs, x, y),
+                    msg=f"Matrices {lhs} and {rhs} differ on ({x}, {y})",
                 )
 
     def test_transformation_by_pauli(self):

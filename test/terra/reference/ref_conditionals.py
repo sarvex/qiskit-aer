@@ -55,7 +55,6 @@ def add_conditional_x(circuit, qreg, creg, val, conditional_type):
 
 def conditional_circuits_1bit(final_measure=True, conditional_type="gate"):
     """Conditional gates on single bit classical register."""
-    circuits = []
     qr = QuantumRegister(1)
     cond = ClassicalRegister(1, "cond")
     if final_measure:
@@ -71,8 +70,7 @@ def conditional_circuits_1bit(final_measure=True, conditional_type="gate"):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # Conditional on 0 (cond = 1)
     circuit = QuantumCircuit(*regs)
     circuit.x(qr)
@@ -113,31 +111,19 @@ def conditional_counts_1bit(shots, hex_counts=True):
     """Conditional circuits reference counts."""
     targets = []
     if hex_counts:
-        # Conditional on 0 (cond = 0), result "0 1"
-        targets.append({"0x1": shots})
-        # Conditional on 0 (cond = 1), result "1 0"
-        targets.append({"0x2": shots})
-        # Conditional on 1 (cond = 0), # result "0 0"
-        targets.append({"0x0": shots})
-        # Conditional on 1 (cond = 1), # result "1 1"
-        targets.append({"0x3": shots})
+        targets.extend(
+            ({"0x1": shots}, {"0x2": shots}, {"0x0": shots}, {"0x3": shots})
+        )
     else:
-        # Conditional on 0 (cond = 0), result "0 1"
-        targets.append({"0 1": shots})
-        # Conditional on 0 (cond = 1), result "1 0"
-        targets.append({"1 0": shots})
-        # Conditional on 1 (cond = 0), # result "0 0"
-        targets.append({"0 0": shots})
-        # Conditional on 1 (cond = 1), # result "1 1"
-        targets.append({"1 1": shots})
+        targets.extend(
+            ({"0 1": shots}, {"1 0": shots}, {"0 0": shots}, {"1 1": shots})
+        )
     return targets
 
 
 def conditional_statevector_1bit():
     """Conditional circuits reference statevector."""
-    targets = []
-    # Conditional on 0 (cond = 0)
-    targets.append(np.array([0, 1]))
+    targets = [np.array([0, 1])]
     # Conditional on 0 (cond = 1)
     targets.append(np.array([1, 0]))
     # Conditional on 1 (cond = 0)
@@ -154,7 +140,6 @@ def conditional_statevector_1bit():
 
 def conditional_circuits_2bit(final_measure=True, conditional_type="gate"):
     """Conditional test circuits on 2-bit classical register."""
-    circuits = []
     qr = QuantumRegister(1)
     cond = ClassicalRegister(2, "cond")
     if final_measure:
@@ -170,8 +155,7 @@ def conditional_circuits_2bit(final_measure=True, conditional_type="gate"):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # Conditional on 00 (cr = 01)
     circuit = QuantumCircuit(*regs)
     circuit.x(qr)
@@ -349,71 +333,47 @@ def conditional_counts_2bit(shots, hex_counts=True):
     """2-bit conditional circuits reference counts."""
     targets = []
     if hex_counts:
-        # Conditional on 00 (cr = 00), result "00 1"
-        targets.append({"0x1": shots})
-        # Conditional on 00 (cr = 01), result "01 0"
-        targets.append({"0x2": shots})
-        # Conditional on 00 (cr = 10), result "10 0"
-        targets.append({"0x4": shots})
-        # Conditional on 00 (cr = 11), result "11 0"
-        targets.append({"0x6": shots})
-        # Conditional on 01 (cr = 00), result "00 0"
-        targets.append({"0x0": shots})
-        # Conditional on 01 (cr = 01), result "01 1"
-        targets.append({"0x3": shots})
-        # Conditional on 01 (cr = 10), result "10 0"
-        targets.append({"0x4": shots})
-        # Conditional on 01 (cr = 11), result "11 0"
-        targets.append({"0x6": shots})
-        # Conditional on 10 (cr = 00), result "00 0"
-        targets.append({"0x0": shots})
-        # Conditional on 10 (cr = 01), result "01 0"
-        targets.append({"0x2": shots})
-        # Conditional on 10 (cr = 10), result "10 1"
-        targets.append({"0x5": shots})
-        # Conditional on 10 (cr = 11), result "11 0"
-        targets.append({"0x6": shots})
-        # Conditional on 11 (cr = 00), result "00 0"
-        targets.append({"0x0": shots})
-        # Conditional on 11 (cr = 01), result "01 0"
-        targets.append({"0x2": shots})
-        # Conditional on 11 (cr = 10), result "10 0"
-        targets.append({"0x4": shots})
-        # Conditional on 11 (cr = 11), result "11 1"
-        targets.append({"0x7": shots})
+        targets.extend(
+            (
+                {"0x1": shots},
+                {"0x2": shots},
+                {"0x4": shots},
+                {"0x6": shots},
+                {"0x0": shots},
+                {"0x3": shots},
+                {"0x4": shots},
+                {"0x6": shots},
+                {"0x0": shots},
+                {"0x2": shots},
+                {"0x5": shots},
+                {"0x6": shots},
+                {"0x0": shots},
+                {"0x2": shots},
+                {"0x4": shots},
+                {"0x7": shots},
+            )
+        )
     else:
-        # Conditional on 00 (cr = 00), result "00 1"
-        targets.append({"00 1": shots})
-        # Conditional on 00 (cr = 01), result "01 0"
-        targets.append({"01 0": shots})
-        # Conditional on 00 (cr = 10), result "10 0"
-        targets.append({"10 0": shots})
-        # Conditional on 00 (cr = 11), result "11 0"
-        targets.append({"11 0": shots})
-        # Conditional on 01 (cr = 00), result "00 0"
-        targets.append({"00 0": shots})
-        # Conditional on 01 (cr = 01), result "01 1"
-        targets.append({"01 1": shots})
-        # Conditional on 01 (cr = 10), result "10 0"
-        targets.append({"10 0": shots})
-        # Conditional on 01 (cr = 11), result "11 0"
-        targets.append({"11 0": shots})
-        # Conditional on 10 (cr = 00), result "00 0"
-        targets.append({"00 0": shots})
-        # Conditional on 10 (cr = 01), result "01 0"
-        targets.append({"01 0": shots})
-        # Conditional on 10 (cr = 10), result "10 1"
-        targets.append({"10 0": shots})
-        # Conditional on 10 (cr = 11), result "11 0"
-        targets.append({"11 0": shots})
-        # Conditional on 11 (cr = 00), result "00 0"
-        targets.append({"00 0": shots})
-        # Conditional on 11 (cr = 01), result "01 0"
-        targets.append({"01 0": shots})
-        # Conditional on 11 (cr = 10), result "10 0"
-        targets.append({"10 0": shots})
-        # Conditional on 11 (cr = 11), result "11 1"
-        targets.append({"11 1": shots})
+        targets.extend(
+            (
+                {"00 1": shots},
+                {"01 0": shots},
+                {"10 0": shots},
+                {"11 0": shots},
+                {"00 0": shots},
+                {"01 1": shots},
+                {"10 0": shots},
+                {"11 0": shots},
+                {"00 0": shots},
+                {"01 0": shots},
+                {"10 0": shots},
+                {"11 0": shots},
+                {"00 0": shots},
+                {"01 0": shots},
+                {"10 0": shots},
+                {"11 1": shots},
+            )
+        )
     return targets
 
 
@@ -421,40 +381,24 @@ def conditional_statevector_2bit():
     """2-bit conditional circuits reference statevector."""
     state_0 = np.array([1, 0])
     state_1 = np.array([0, 1])
-    targets = []
-    # Conditional on 00 (cr = 00)
-    targets.append(state_1)
-    # Conditional on 00 (cr = 01)
-    targets.append(state_0)
-    # Conditional on 00 (cr = 10)
-    targets.append(state_0)
-    # Conditional on 00 (cr = 11)
-    targets.append(state_0)
-    # Conditional on 01 (cr = 00)
-    targets.append(state_0)
-    # Conditional on 01 (cr = 01)
-    targets.append(state_1)
-    # Conditional on 01 (cr = 10)
-    targets.append(state_0)
-    # Conditional on 01 (cr = 11)
-    targets.append(state_0)
-    # Conditional on 10 (cr = 00)
-    targets.append(state_0)
-    # Conditional on 10 (cr = 01)
-    targets.append(state_0)
-    # Conditional on 10 (cr = 10)
-    targets.append(state_1)
-    # Conditional on 10 (cr = 11)
-    targets.append(state_0)
-    # Conditional on 11 (cr = 00)
-    targets.append(state_0)
-    # Conditional on 11 (cr = 01)
-    targets.append(state_0)
-    # Conditional on 11 (cr = 10)
-    targets.append(state_0)
-    # Conditional on 11 (cr = 11)
-    targets.append(state_1)
-    return targets
+    return [
+        state_1,
+        state_0,
+        state_0,
+        state_0,
+        state_0,
+        state_1,
+        state_0,
+        state_0,
+        state_0,
+        state_0,
+        state_1,
+        state_0,
+        state_0,
+        state_0,
+        state_0,
+        state_1,
+    ]
 
 
 # ==========================================================================
@@ -541,7 +485,7 @@ def condtional_counts_nbit(n, cases, shots, hex_counts=True):
             if hex_counts:
                 key = "{:#x}".format(reg_val * 2 + cr)
             else:
-                key = "{} {}".format(bin(reg_val)[2:].zfill(n), str(cr))
+                key = f"{bin(reg_val)[2:].zfill(n)} {cr}"
             targets.append({key: shots})
     return targets
 

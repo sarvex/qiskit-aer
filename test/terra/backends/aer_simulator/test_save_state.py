@@ -58,11 +58,7 @@ class TestSaveState(SimulatorTestCase):
         }
 
         backend = self.backend(method=method, device=device)
-        if method == "automatic":
-            label = "stabilizer"
-        else:
-            label = method
-
+        label = "stabilizer" if method == "automatic" else method
         # Stabilizer test circuit
         num_qubits = 2
         target_instr = REFERENCE_SAVE[method](num_qubits, label="target")

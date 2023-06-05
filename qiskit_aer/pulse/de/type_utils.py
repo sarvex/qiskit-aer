@@ -59,10 +59,7 @@ class StateTypeConverter:
         """
         inner_type_spec = type_spec_from_instance(inner_y)
 
-        outer_type_spec = None
-        if outer_y is not None:
-            outer_type_spec = type_spec_from_instance(outer_y)
-
+        outer_type_spec = None if outer_y is None else type_spec_from_instance(outer_y)
         return cls(inner_type_spec, outer_type_spec)
 
     @classmethod

@@ -83,7 +83,7 @@ class SimulatorBenchmarkSuite(CircuitLibraryCircuits):
         self.timeout = 60 * 10
         self.__name__ = name
 
-        self.apps = apps if isinstance(apps, list) else [app for app in apps]
+        self.apps = apps if isinstance(apps, list) else list(apps)
         self.app2rep = {} if isinstance(apps, list) else apps
         self.qubits = qubits
         self.runtime_names = runtime_names
@@ -106,8 +106,7 @@ class SimulatorBenchmarkSuite(CircuitLibraryCircuits):
         self.backend_options_list = {}
         self.backend_qubits = {}
 
-        self.noise_models = {}
-        self.noise_models[self.NOISE_IDEAL] = None
+        self.noise_models = {self.NOISE_IDEAL: None}
         if self.NOISE_DAMPING in self.noise_model_names:
             noise_model = NoiseModel()
             error = amplitude_damping_error(1e-3)

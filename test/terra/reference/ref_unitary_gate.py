@@ -24,8 +24,6 @@ from qiskit.quantum_info import Statevector
 def unitary_gate_circuits_deterministic(final_measure=True):
     """Unitary gate test circuits with deterministic count output."""
 
-    circuits = []
-
     qr = QuantumRegister(2, "qr")
     if final_measure:
         cr = ClassicalRegister(2, "cr")
@@ -41,8 +39,7 @@ def unitary_gate_circuits_deterministic(final_measure=True):
     if final_measure:
         circuit.barrier(qr)
         circuit.measure(qr, cr)
-    circuits.append(circuit)
-
+    circuits = [circuit]
     # CX10, |00> state
     circuit = QuantumCircuit(*regs)
     circuit.unitary(cx_mat, [1, 0])
@@ -94,38 +91,33 @@ def unitary_gate_counts_deterministic(shots, hex_counts=True):
     """Unitary gate circuits reference counts."""
     targets = []
     if hex_counts:
-        # CX01, |00> state
-        targets.append({"0x0": shots})  # {"00": shots}
-        # CX10, |00> state
-        targets.append({"0x0": shots})  # {"00": shots}
-        # CX01.(Y^I), |10> state
-        targets.append({"0x2": shots})  # {"00": shots}
-        # CX10.(I^Y), |01> state
-        targets.append({"0x1": shots})  # {"00": shots}
-        # CX01.(I^Y), |11> state
-        targets.append({"0x3": shots})  # {"00": shots}
-        # CX10.(Y^I), |11> state
-        targets.append({"0x3": shots})  # {"00": shots}
+        targets.extend(
+            (
+                {"0x0": shots},
+                {"0x0": shots},
+                {"0x2": shots},
+                {"0x1": shots},
+                {"0x3": shots},
+                {"0x3": shots},
+            )
+        )
     else:
-        # CX01, |00> state
-        targets.append({"00": shots})  # {"00": shots}
-        # CX10, |00> state
-        targets.append({"00": shots})  # {"00": shots}
-        # CX01.(Y^I), |10> state
-        targets.append({"10": shots})  # {"00": shots}
-        # CX10.(I^Y), |01> state
-        targets.append({"01": shots})  # {"00": shots}
-        # CX01.(I^Y), |11> state
-        targets.append({"11": shots})  # {"00": shots}
-        # CX10.(Y^I), |11> state
+        targets.extend(
+            (
+                {"00": shots},
+                {"00": shots},
+                {"10": shots},
+                {"01": shots},
+                {"11": shots},
+            )
+        )
+            # CX10.(Y^I), |11> state
     return targets
 
 
 def unitary_gate_statevector_deterministic():
     """Unitary gate test circuits with deterministic counts."""
-    targets = []
-    # CX01, |00> state
-    targets.append(np.array([1, 0, 0, 0]))
+    targets = [np.array([1, 0, 0, 0])]
     # CX10, |00> state
     targets.append(np.array([1, 0, 0, 0]))
     # CX01.(Y^I), |10> state
@@ -141,9 +133,7 @@ def unitary_gate_statevector_deterministic():
 
 def unitary_gate_unitary_deterministic():
     """Unitary gate circuits reference unitaries."""
-    targets = []
-    # CX01, |00> state
-    targets.append(np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]))
+    targets = [np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]])]
     # CX10, |00> state
     targets.append(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
     # CX01.(Y^I), |10> state

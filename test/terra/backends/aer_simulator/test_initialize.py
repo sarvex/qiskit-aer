@@ -33,9 +33,7 @@ class TestInitialize(SimulatorTestCase):
     def test_initialize_wrapper_1(self, method, device):
         """Test AerSimulator initialize"""
         backend = self.backend(method=method, device=device)
-        shots = 100
-        if "tensor_network" in method:
-            shots = 10
+        shots = 10 if "tensor_network" in method else 100
         lst = [0, 1]
         init_states = [
             np.array(lst),
@@ -59,9 +57,7 @@ class TestInitialize(SimulatorTestCase):
     def test_initialize_wrapper_2(self, method, device):
         """Test AerSimulator initialize"""
         backend = self.backend(method=method, device=device)
-        shots = 100
-        if "tensor_network" in method:
-            shots = 10
+        shots = 10 if "tensor_network" in method else 100
         lst = [0, 1, 0, 0]
         init_states = [
             np.array(lst),
@@ -191,5 +187,5 @@ class TestInitialize(SimulatorTestCase):
             for q3, p3 in enumerate([1, -1]):
                 for q2, p2 in enumerate([1, 1j]):
                     for q1, p1 in enumerate([1, -1j]):
-                        index = int("{}{}{}{}".format(q4, q3, q2, q1), 2)
+                        index = int(f"{q4}{q3}{q2}{q1}", 2)
                         self.assertAlmostEqual(actual[index], 0.25 * p1 * p2 * p3 * p4)

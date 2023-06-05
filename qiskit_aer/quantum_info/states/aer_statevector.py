@@ -243,7 +243,7 @@ class AerStatevector(Statevector):
                 aer_state.apply_cu(qubits[0], qubits[1], params[0], params[1], params[2], params[3])
             elif inst.name == "mcu":
                 aer_state.apply_mcu(
-                    qubits[0 : len(qubits) - 1],
+                    qubits[:-1],
                     qubits[len(qubits) - 1],
                     params[0],
                     params[1],
@@ -251,28 +251,24 @@ class AerStatevector(Statevector):
                     params[3],
                 )
             elif inst.name in "mcx":
-                aer_state.apply_mcx(qubits[0 : len(qubits) - 1], qubits[len(qubits) - 1])
+                aer_state.apply_mcx(qubits[:-1], qubits[len(qubits) - 1])
             elif inst.name in "mcy":
-                aer_state.apply_mcy(qubits[0 : len(qubits) - 1], qubits[len(qubits) - 1])
+                aer_state.apply_mcy(qubits[:-1], qubits[len(qubits) - 1])
             elif inst.name in "mcz":
-                aer_state.apply_mcz(qubits[0 : len(qubits) - 1], qubits[len(qubits) - 1])
-            elif inst.name == "id":
-                pass
-            else:
+                aer_state.apply_mcz(qubits[:-1], qubits[len(qubits) - 1])
+            elif inst.name != "id":
                 applied = False
         elif inst.name == "kraus":
             aer_state.apply_kraus(qubits, inst.params)
         elif inst.name == "reset":
             aer_state.apply_reset(qubits)
-        elif inst.name == "barrier":
-            pass
-        else:
+        elif inst.name != "barrier":
             applied = False
 
         if not applied:
             definition = inst.definition
             if definition is inst or definition is None:
-                raise AerError("cannot decompose " + inst.name)
+                raise AerError(f"cannot decompose {inst.name}")
             AerStatevector._aer_evolve_circuit(aer_state, definition, qubits, basis_gates)
 
     @classmethod

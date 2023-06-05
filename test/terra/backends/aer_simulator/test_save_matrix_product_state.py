@@ -28,15 +28,15 @@ class TestSaveMatrixProductStateTests(SimulatorTestCase):
         backend = self.backend(method=method, device=device)
 
         # Target mps structure
-        target_qreg = []
-        target_qreg.append((np.array([[1, 0]], dtype=complex), np.array([[0, 1]], dtype=complex)))
+        target_qreg = [
+            (np.array([[1, 0]], dtype=complex), np.array([[0, 1]], dtype=complex))
+        ]
         target_qreg.append(
             (np.array([[1], [0]], dtype=complex), np.array([[0], [1]], dtype=complex))
         )
         target_qreg.append((np.array([[1]], dtype=complex), np.array([[0]], dtype=complex)))
 
-        target_lambda_reg = []
-        target_lambda_reg.append(np.array([1 / np.math.sqrt(2)], dtype=float))
+        target_lambda_reg = [np.array([1 / np.math.sqrt(2)], dtype=float)]
         target_lambda_reg.append(np.array([1], dtype=float))
 
         # Matrix product state test circuit

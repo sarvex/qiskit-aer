@@ -787,19 +787,20 @@ class TestPulseSimulator(common.QiskitAerTestCase):
         j = 0.02
         total_samples = 25
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = [
-            "2*np.pi*v0*0.5*Z0",
-            "2*np.pi*v1*0.5*Z1",
-            "2*np.pi*r*0.5*X0||D0",
-            "2*np.pi*r*0.5*X1||D1",
-            "2*np.pi*j*0.5*I0*I1",
-            "2*np.pi*j*0.5*X0*X1",
-            "2*np.pi*j*0.5*Y0*Y1",
-            "2*np.pi*j*0.5*Z0*Z1",
-        ]
-        hamiltonian["vars"] = {"v0": q_freqs[0], "v1": q_freqs[1], "r": r, "j": j}
-        hamiltonian["qub"] = {"0": 2, "1": 2}
+        hamiltonian = {
+            "h_str": [
+                "2*np.pi*v0*0.5*Z0",
+                "2*np.pi*v1*0.5*Z1",
+                "2*np.pi*r*0.5*X0||D0",
+                "2*np.pi*r*0.5*X1||D1",
+                "2*np.pi*j*0.5*I0*I1",
+                "2*np.pi*j*0.5*X0*X1",
+                "2*np.pi*j*0.5*Y0*Y1",
+                "2*np.pi*j*0.5*Z0*Z1",
+            ],
+            "vars": {"v0": q_freqs[0], "v1": q_freqs[1], "r": r, "j": j},
+            "qub": {"0": 2, "1": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         # set the U0 to have frequency of drive channel 0
@@ -843,10 +844,11 @@ class TestPulseSimulator(common.QiskitAerTestCase):
         """Test for delay instruction."""
 
         # construct system model specifically for this
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["0.5*r*X0||D0", "0.5*r*Y0||D1"]
-        hamiltonian["vars"] = {"r": np.pi}
-        hamiltonian["qub"] = {"0": 2}
+        hamiltonian = {
+            "h_str": ["0.5*r*X0||D0", "0.5*r*Y0||D1"],
+            "vars": {"r": np.pi},
+            "qub": {"0": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         u_channel_lo = []
@@ -1124,19 +1126,20 @@ class TestPulseSimulator(common.QiskitAerTestCase):
         j = 0.02
         total_samples = 25
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = [
-            "2*np.pi*v0*0.5*Z0",
-            "2*np.pi*v1*0.5*Z1",
-            "2*np.pi*r*0.5*X0||D0",
-            "2*np.pi*r*0.5*X1||D1",
-            "2*np.pi*j*0.5*I0*I1",
-            "2*np.pi*j*0.5*X0*X1",
-            "2*np.pi*j*0.5*Y0*Y1",
-            "2*np.pi*j*0.5*Z0*Z1",
-        ]
-        hamiltonian["vars"] = {"v0": q_freqs[0], "v1": q_freqs[1], "r": r, "j": j}
-        hamiltonian["qub"] = {"0": 3, "1": 3}
+        hamiltonian = {
+            "h_str": [
+                "2*np.pi*v0*0.5*Z0",
+                "2*np.pi*v1*0.5*Z1",
+                "2*np.pi*r*0.5*X0||D0",
+                "2*np.pi*r*0.5*X1||D1",
+                "2*np.pi*j*0.5*I0*I1",
+                "2*np.pi*j*0.5*X0*X1",
+                "2*np.pi*j*0.5*Y0*Y1",
+                "2*np.pi*j*0.5*Z0*Z1",
+            ],
+            "vars": {"v0": q_freqs[0], "v1": q_freqs[1], "r": r, "j": j},
+            "qub": {"0": 3, "1": 3},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         # set the U0 to have frequency of drive channel 0
@@ -1179,10 +1182,11 @@ class TestPulseSimulator(common.QiskitAerTestCase):
             PulseSystemModel: model for qubit system
         """
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["2*np.pi*omega0*0.5*Z0", "2*np.pi*r*0.5*X0||D0"]
-        hamiltonian["vars"] = {"omega0": omega_0, "r": r}
-        hamiltonian["qub"] = {"0": 2}
+        hamiltonian = {
+            "h_str": ["2*np.pi*omega0*0.5*Z0", "2*np.pi*r*0.5*X0||D0"],
+            "vars": {"omega0": omega_0, "r": r},
+            "qub": {"0": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         u_channel_lo = []
@@ -1223,10 +1227,11 @@ class TestPulseSimulator(common.QiskitAerTestCase):
             PulseSystemModel: model for qubit system
         """
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["a*X0||D0", "a*X0||D1", "2*np.pi*j*0.25*(Z0*X1)||U0"]
-        hamiltonian["vars"] = {"a": 0, "j": j}
-        hamiltonian["qub"] = {"0": 2, "1": 2}
+        hamiltonian = {
+            "h_str": ["a*X0||D0", "a*X0||D1", "2*np.pi*j*0.25*(Z0*X1)||U0"],
+            "vars": {"a": 0, "j": j},
+            "qub": {"0": 2, "1": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         # set the U0 to have frequency of drive channel 0
@@ -1271,10 +1276,11 @@ class TestPulseSimulator(common.QiskitAerTestCase):
             PulseSystemModel: model for qubit system
         """
 
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["2*np.pi*j*0.25*(Z0*X2)||U0", "2*np.pi*j*0.25*(Z1*X2)||U1"]
-        hamiltonian["vars"] = {"j": j}
-        hamiltonian["qub"] = {"0": 2, "1": 2, "2": 2}
+        hamiltonian = {
+            "h_str": ["2*np.pi*j*0.25*(Z0*X2)||U0", "2*np.pi*j*0.25*(Z1*X2)||U1"],
+            "vars": {"j": j},
+            "qub": {"0": 2, "1": 2, "2": 2},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian, subsystem_list=subsystem_list)
 
         # set the U0 to have frequency of drive channel 0
@@ -1321,10 +1327,15 @@ class TestPulseSimulator(common.QiskitAerTestCase):
         Returns:
             PulseSystemModel: model for oscillator system
         """
-        hamiltonian = {}
-        hamiltonian["h_str"] = ["np.pi*(2*v-alpha)*O0", "np.pi*alpha*O0*O0", "2*np.pi*r*X0||D0"]
-        hamiltonian["vars"] = {"v": freq, "alpha": anharm, "r": r}
-        hamiltonian["qub"] = {"0": 3}
+        hamiltonian = {
+            "h_str": [
+                "np.pi*(2*v-alpha)*O0",
+                "np.pi*alpha*O0*O0",
+                "2*np.pi*r*X0||D0",
+            ],
+            "vars": {"v": freq, "alpha": anharm, "r": r},
+            "qub": {"0": 3},
+        }
         ham_model = HamiltonianModel.from_dict(hamiltonian)
 
         u_channel_lo = []

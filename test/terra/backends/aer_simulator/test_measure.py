@@ -144,7 +144,7 @@ class TestMeasure(SimulatorTestCase):
         targets = ref_measure.measure_counts_deterministic(shots)
         result = backend.run(circuits, shots=shots).result()
         self.assertSuccess(result)
-        sampling = method == "density_matrix" or method == "tensor_network"
+        sampling = method in ["density_matrix", "tensor_network"]
         self.compare_result_metadata(result, circuits, "measure_sampling", sampling)
 
     # ---------------------------------------------------------------------
@@ -238,7 +238,7 @@ class TestMeasure(SimulatorTestCase):
         shots = 1000
         n = 5
         circuits = []
-        for i in range(2):
+        for _ in range(2):
             circuit = QuantumCircuit(n, n)
             circuit.unitary(random_unitary(4), [0, 1])
             circuit.unitary(random_unitary(4), [1, 2])

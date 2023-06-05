@@ -171,10 +171,11 @@ class Sampler(BaseSampler):
         return circuit
 
     def _transpile(self, circuit_indices: Sequence[int], is_shots_none: bool):
-        to_handle = [
-            i for i in set(circuit_indices) if (i, is_shots_none) not in self._transpiled_circuits
-        ]
-        if to_handle:
+        if to_handle := [
+            i
+            for i in set(circuit_indices)
+            if (i, is_shots_none) not in self._transpiled_circuits
+        ]:
             circuits = (self._circuits[i] for i in to_handle)
             if is_shots_none:
                 circuits = (self._preprocess_circuit(circ) for circ in circuits)

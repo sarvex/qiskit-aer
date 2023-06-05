@@ -200,8 +200,11 @@ def basic_device_gate_errors(
         relax_time = gate_length
         # Override with custom value
         if name in custom_times:
-            filtered = [val for q, val in custom_times[name] if q is None or q == qubits]
-            if filtered:
+            if filtered := [
+                val
+                for q, val in custom_times[name]
+                if q is None or q == qubits
+            ]:
                 # get first value
                 relax_time = filtered[0]
         # Get relaxation error
@@ -214,9 +217,9 @@ def basic_device_gate_errors(
         if gate_error:
             depol_error = _device_depolarizing_error(qubits, error_param, relax_error)
 
-        # Combine errors
-        combined_error = _combine_depol_and_relax_error(depol_error, relax_error)
-        if combined_error:
+        if combined_error := _combine_depol_and_relax_error(
+            depol_error, relax_error
+        ):
             errors.append((name, qubits, combined_error))
 
     return errors
@@ -227,9 +230,7 @@ def _combine_depol_and_relax_error(depol_error, relax_error):
         return depol_error.compose(relax_error)
     if depol_error:
         return depol_error
-    if relax_error:
-        return relax_error
-    return None
+    return relax_error if relax_error else None
 
 
 def _basic_device_target_gate_errors(
@@ -275,9 +276,9 @@ def _basic_device_target_gate_errors(
                     error_param=inst_prop.error,
                     relax_error=relax_error,
                 )
-            # Combine errors
-            combined_error = _combine_depol_and_relax_error(depol_error, relax_error)
-            if combined_error:
+            if combined_error := _combine_depol_and_relax_error(
+                depol_error, relax_error
+            ):
                 errors.append((op_name, qubits, combined_error))
 
     return errors
@@ -360,9 +361,7 @@ def _device_thermal_relaxation_error(
 
 def _truncate_t2_value(t1, t2):
     """Return t2 value truncated to 2 * t1 (for t2 > 2 * t1)"""
-    if t1 is None or t2 is None:
-        return t2
-    return min(t2, 2 * t1)
+    return t2 if t1 is None or t2 is None else min(t2, 2 * t1)
 
 
 def _excited_population(freq, temperature):

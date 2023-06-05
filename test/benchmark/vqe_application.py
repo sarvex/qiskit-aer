@@ -35,7 +35,7 @@ class UCCSDBenchmarkSuite:
 
         self.timeout = 60 * 60
         self.__name__ = name
-        self.params = [mol_name for mol_name in self.mol_strings]
+        self.params = list(self.mol_strings)
         self.param_names = ["mol"]
 
     def _run_uccsd_vqe(self, mol_string, method, threads):

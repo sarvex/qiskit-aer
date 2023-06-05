@@ -190,7 +190,7 @@ class HamiltonianModel:
         # Get the diagonal elements of the hamiltonian with all the
         # drive terms set to zero
         for chan in self._channels:
-            exec("%s=0" % chan)
+            exec(f"{chan}=0")
 
         # might be a better solution to replace the 'var' in the hamiltonian
         # string with 'op_system.vars[var]'

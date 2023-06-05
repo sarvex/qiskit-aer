@@ -92,7 +92,7 @@ def _copy_qobj_for_noise(qobj, max_shot_size, qobj_id):
 
 def _split_qobj(qobj, max_size, qobj_id, seed):
     # Check if we don't need to split
-    if max_size is None or not max_size > 0:
+    if max_size is None or max_size <= 0:
         return qobj
 
     num_jobs = ceil(len(qobj.experiments) / max_size)

@@ -25,8 +25,6 @@ if not hasattr(QuantumCircuit, "i"):
 def grovers_circuit(final_measure=True, allow_sampling=True):
     """Testing a circuit originated in the Grover algorithm"""
 
-    circuits = []
-
     # 6-qubit grovers
     qr = QuantumRegister(6)
     if final_measure:
@@ -67,9 +65,7 @@ def grovers_circuit(final_measure=True, allow_sampling=True):
     if not allow_sampling:
         circuit.barrier(qr)
         circuit.i(qr)
-    circuits.append(circuit)
-
-    return circuits
+    return [circuit]
 
 
 def grovers_counts(shots, hex_counts=True):
@@ -86,8 +82,6 @@ def grovers_counts(shots, hex_counts=True):
 
 def teleport_circuit():
     """Testing a circuit originated in the teleportation algorithm"""
-
-    circuits = []
 
     # Classic 3-qubit teleportation
     qr = QuantumRegister(3)
@@ -108,9 +102,7 @@ def teleport_circuit():
     circuit.z(qr[2]).c_if(c0, 1)
     circuit.x(qr[2]).c_if(c1, 1)
     circuit.measure(qr[2], c2[0])
-    circuits.append(circuit)
-
-    return circuits
+    return [circuit]
 
 
 def teleport_counts(shots, hex_counts=True):

@@ -70,11 +70,7 @@ class AerCompiler:
         """
         if isinstance(circuits, (QuantumCircuit, Schedule, ScheduleBlock)):
             circuits = [circuits]
-        if optypes is None:
-            compiled_optypes = len(circuits) * [None]
-        else:
-            # Make a shallow copy incase we modify it
-            compiled_optypes = list(optypes)
+        compiled_optypes = len(circuits) * [None] if optypes is None else list(optypes)
         if isinstance(circuits, list):
             basis_gates = basis_gates + ["mark", "jump"]
             compiled_circuits = []
@@ -94,9 +90,7 @@ class AerCompiler:
                 return compiled_circuits
             return compiled_circuits, compiled_optypes
 
-        if optypes is None:
-            return circuits
-        return circuits, optypes
+        return circuits if optypes is None else (circuits, optypes)
 
     def _inline_initialize(self, circ, optype):
         """inline initialize.definition gates if statevector is not used"""
@@ -139,12 +133,10 @@ class AerCompiler:
         if isinstance(optype, set):
             return bool(optype.intersection(controlflow_types))
 
-        # Check via iteration
-        for instruction in circuit.data:
-            if isinstance(instruction.operation, controlflow_types):
-                return True
-
-        return False
+        return any(
+            isinstance(instruction.operation, controlflow_types)
+            for instruction in circuit.data
+        )
 
     def _inline_circuit(self, circ, continue_label, break_label, bit_map=None):
         """convert control-flow instructions to mark and jump instructions
@@ -295,11 +287,7 @@ class AerCompiler:
 
         if_true_label = f"{if_name}_true"
         if_end_label = f"{if_name}_end"
-        if false_body:
-            if_else_label = f"{if_name}_else"
-        else:
-            if_else_label = if_end_label
-
+        if_else_label = f"{if_name}_else" if false_body else if_end_label
         c_if_args = self._convert_c_if_args(condition_tuple, bit_map)
 
         qargs = [bit_map[q] for q in instruction.qubits]
@@ -556,8 +544,6 @@ def assemble_circuit(circuit: QuantumCircuit):
     num_memory = circuit.num_clbits
     max_conditional_idx = 0
 
-    qreg_sizes = []
-    creg_sizes = []
     if (
         isinstance(circuit.global_phase, ParameterExpression)
         and len(circuit.global_phase.parameters) > 0
@@ -566,11 +552,8 @@ def assemble_circuit(circuit: QuantumCircuit):
     else:
         global_phase = float(circuit.global_phase)
 
-    for qreg in circuit.qregs:
-        qreg_sizes.append([qreg.name, qreg.size])
-    for creg in circuit.cregs:
-        creg_sizes.append([creg.name, creg.size])
-
+    qreg_sizes = [[qreg.name, qreg.size] for qreg in circuit.qregs]
+    creg_sizes = [[creg.name, creg.size] for creg in circuit.cregs]
     is_conditional = any(getattr(inst.operation, "condition", None) for inst in circuit.data)
 
     header = QobjExperimentHeader(

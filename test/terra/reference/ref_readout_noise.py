@@ -65,13 +65,10 @@ def readout_error_circuits():
 
 def readout_error_noise_models():
     """Readout error test circuit noise models."""
-    noise_models = []
-
     # 1-qubit readout error on qubit 0
     noise_model = NoiseModel()
     noise_model.add_readout_error(ROERROR_1Q, [0])
-    noise_models.append(noise_model)
-
+    noise_models = [noise_model]
     # 1-qubit readout error on qubit 1
     noise_model = NoiseModel()
     noise_model.add_readout_error(ROERROR_1Q, [1])
@@ -92,8 +89,6 @@ def readout_error_noise_models():
 
 def readout_error_counts(shots, hex_counts=True):
     """Readout error test circuits reference counts."""
-    counts_lists = []
-
     # 1-qubit readout error on qubit 0
     counts = [
         ROERROR_1Q[0][0] * shots / 2,
@@ -101,8 +96,7 @@ def readout_error_counts(shots, hex_counts=True):
         ROERROR_1Q[1][0] * shots / 2,
         ROERROR_1Q[1][1] * shots / 2,
     ]
-    counts_lists.append(counts)
-
+    counts_lists = [counts]
     # 1-qubit readout error on qubit 1
     counts = [
         ROERROR_1Q[0][0] * shots / 2,
@@ -122,10 +116,10 @@ def readout_error_counts(shots, hex_counts=True):
 
     # 2-qubit readout error on qubits 0,1
     probs_ideal = [0.25, 0.25, 0.25, 0.25]
-    p00 = sum([ideal * noise[0] for ideal, noise in zip(probs_ideal, ROERROR_2Q)])
-    p01 = sum([ideal * noise[1] for ideal, noise in zip(probs_ideal, ROERROR_2Q)])
-    p10 = sum([ideal * noise[2] for ideal, noise in zip(probs_ideal, ROERROR_2Q)])
-    p11 = sum([ideal * noise[3] for ideal, noise in zip(probs_ideal, ROERROR_2Q)])
+    p00 = sum(ideal * noise[0] for ideal, noise in zip(probs_ideal, ROERROR_2Q))
+    p01 = sum(ideal * noise[1] for ideal, noise in zip(probs_ideal, ROERROR_2Q))
+    p10 = sum(ideal * noise[2] for ideal, noise in zip(probs_ideal, ROERROR_2Q))
+    p11 = sum(ideal * noise[3] for ideal, noise in zip(probs_ideal, ROERROR_2Q))
     counts = [p00 * shots, p01 * shots, p10 * shots, p11 * shots]
     counts_lists.append(counts)
 

@@ -40,5 +40,4 @@ def setup_de_solver(exp, y0, pulse_de_model, de_options):
 
     rhs = pulse_de_model.init_rhs(exp)
 
-    solver = method(0.0, y0, rhs, de_options)
-    return solver
+    return method(0.0, y0, rhs, de_options)

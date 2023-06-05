@@ -79,14 +79,11 @@ class ReadoutError:
 
     def __repr__(self):
         """Display ReadoutError."""
-        return "ReadoutError({})".format(self._probabilities)
+        return f"ReadoutError({self._probabilities})"
 
     def __str__(self):
         """Print error information."""
-        output = (
-            "ReadoutError on {} qubits.".format(self._number_of_qubits)
-            + " Assignment probabilities:"
-        )
+        output = f"ReadoutError on {self._number_of_qubits} qubits. Assignment probabilities:"
         for j, vec in enumerate(self._probabilities):
             output += "\n P(j|{0}) =  {1}".format(j, vec)
         return output
@@ -131,27 +128,25 @@ class ReadoutError:
     def set_atol(cls, value):
         """Set the class default absolute tolerance parameter for float comparisons."""
         if value < 0:
-            raise NoiseError("Invalid atol ({}) must be non-negative.".format(value))
+            raise NoiseError(f"Invalid atol ({value}) must be non-negative.")
         if value > cls._MAX_TOL:
-            raise NoiseError("Invalid atol ({}) must be less than {}.".format(value, cls._MAX_TOL))
+            raise NoiseError(f"Invalid atol ({value}) must be less than {cls._MAX_TOL}.")
         cls._ATOL_DEFAULT = value
 
     @classmethod
     def set_rtol(cls, value):
         """Set the class default relative tolerance parameter for float comparisons."""
         if value < 0:
-            raise NoiseError("Invalid rtol ({}) must be non-negative.".format(value))
+            raise NoiseError(f"Invalid rtol ({value}) must be non-negative.")
         if value > cls._MAX_TOL:
-            raise NoiseError("Invalid rtol ({}) must be less than {}.".format(value, cls._MAX_TOL))
+            raise NoiseError(f"Invalid rtol ({value}) must be less than {cls._MAX_TOL}.")
         cls._RTOL_DEFAULT = value
 
     def ideal(self):
         """Return True if current error object is an identity"""
         iden = np.eye(2**self.number_of_qubits)
         delta = round(norm(np.array(self.probabilities) - iden), 12)
-        if delta == 0:
-            return True
-        return False
+        return delta == 0
 
     def to_instruction(self):
         """Convert the ReadoutError to a circuit Instruction."""
@@ -159,12 +154,11 @@ class ReadoutError:
 
     def to_dict(self):
         """Return the current error as a dictionary."""
-        error = {
+        return {
             "type": "roerror",
             "operations": ["measure"],
             "probabilities": self._probabilities.tolist(),
         }
-        return error
 
     def compose(self, other, front=False):
         """Return the composition readout error other * self.
@@ -262,7 +256,7 @@ class ReadoutError:
         num_qubits = int(np.log2(num_outcomes))
         if 2**num_qubits != num_outcomes:
             raise NoiseError(
-                "Invalid probabilities: length " "{} != 2**{}".format(num_outcomes, num_qubits)
+                f"Invalid probabilities: length {num_outcomes} != 2**{num_qubits}"
             )
         if len(probabilities) != num_outcomes:
             raise NoiseError("Invalid probabilities.")
@@ -271,12 +265,10 @@ class ReadoutError:
             if len(arr) != num_outcomes:
                 raise NoiseError("Invalid probabilities: vectors are different lengths.")
             if abs(sum(arr) - 1) > threshold:
-                raise NoiseError(
-                    "Invalid probabilities: sum({})= {} " "is not 1.".format(vec, sum(arr))
-                )
+                raise NoiseError(f"Invalid probabilities: sum({vec})= {sum(arr)} is not 1.")
             if arr[arr < 0].size > 0:
                 raise NoiseError(
-                    "Invalid probabilities: {} " "contains a negative probability.".format(vec)
+                    f"Invalid probabilities: {vec} contains a negative probability."
                 )
 
     def _matmul(self, other, left_multiply=False):

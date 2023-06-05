@@ -212,16 +212,12 @@ class TestGateFusion(SimulatorTestCase):
 
         expected_max_qubits = 5
         expected_threshold = 14
-        if method == "density_matrix":
+        if method in ["density_matrix", "superop"]:
             expected_max_qubits = 2
             expected_threshold = 7
         elif method == "unitary":
             expected_max_qubits = 5
             expected_threshold = 7
-        elif method == "superop":
-            expected_max_qubits = 2
-            expected_threshold = 7
-
         meta = result.results[0].metadata.get("fusion", None)
         self.assertEqual(meta.get("max_fused_qubits", None), expected_max_qubits)
         self.assertEqual(meta.get("threshold", None), expected_threshold)
@@ -237,10 +233,7 @@ class TestGateFusion(SimulatorTestCase):
         circuit = transpile(self.create_statevector_circuit(), backend, optimization_level=0)
         result = backend.run(circuit, shots=shots).result()
         meta = self.fusion_metadata(result)
-        if method == "density_matrix":
-            target_method = "superop"
-        else:
-            target_method = "kraus"
+        target_method = "superop" if method == "density_matrix" else "kraus"
         self.assertSuccess(result)
         self.assertTrue(meta.get("applied", False), msg="fusion should have been applied.")
         self.assertEqual(meta.get("method", None), target_method)
@@ -256,10 +249,7 @@ class TestGateFusion(SimulatorTestCase):
         circuit = transpile(self.create_statevector_circuit(), backend, optimization_level=0)
         result = backend.run(circuit, shots=shots).result()
         meta = self.fusion_metadata(result)
-        if method == "density_matrix":
-            target_method = "superop"
-        else:
-            target_method = "unitary"
+        target_method = "superop" if method == "density_matrix" else "unitary"
         self.assertSuccess(result)
         self.assertTrue(meta.get("applied", False), msg="fusion should have been applied.")
         self.assertEqual(meta.get("method", None), target_method)
@@ -481,10 +471,7 @@ class TestGateFusion(SimulatorTestCase):
         circuit.measure_all()
 
         np.random.seed(12345)
-        param_binds = {}
-        for param in circuit.parameters:
-            param_binds[param] = np.random.random()
-
+        param_binds = {param: np.random.random() for param in circuit.parameters}
         circuit = transpile(circuit.bind_parameters(param_binds), backend, optimization_level=0)
 
         backend_options = self.fusion_options(enabled=True, threshold=1)

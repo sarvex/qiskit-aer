@@ -1107,37 +1107,31 @@ class TestAerStatevector(common.QiskitAerTestCase):
                 self.assertIn(outcome, ["00", "10"])
                 if outcome == "00":
                     target = AerStatevector.from_label("00")
-                    self.assertEqual(value, target)
                 else:
                     target = AerStatevector.from_label("10")
-                    self.assertEqual(value, target)
-
+                self.assertEqual(value, target)
         with self.subTest(msg="measure [0, 1]"):
-            for i in range(shots):
+            for _ in range(shots):
                 psi = state.copy()
                 outcome, value = psi.measure([0, 1])
                 self.assertIn(outcome, ["00", "10"])
                 if outcome == "00":
                     target = AerStatevector.from_label("00")
-                    self.assertEqual(value, target)
                 else:
                     target = AerStatevector.from_label("10")
-                    self.assertEqual(value, target)
-
+                self.assertEqual(value, target)
         with self.subTest(msg="measure [1, 0]"):
-            for i in range(shots):
+            for _ in range(shots):
                 psi = state.copy()
                 outcome, value = psi.measure([1, 0])
                 self.assertIn(outcome, ["00", "01"])
                 if outcome == "00":
                     target = AerStatevector.from_label("00")
-                    self.assertEqual(value, target)
                 else:
                     target = AerStatevector.from_label("10")
-                    self.assertEqual(value, target)
-
+                self.assertEqual(value, target)
         with self.subTest(msg="measure [0]"):
-            for i in range(shots):
+            for _ in range(shots):
                 psi = state.copy()
                 outcome, value = psi.measure([0])
                 self.assertEqual(outcome, "0")
@@ -1145,16 +1139,16 @@ class TestAerStatevector(common.QiskitAerTestCase):
                 self.assertEqual(value, target)
 
         with self.subTest(msg="measure [1]"):
-            for i in range(shots):
+            for _ in range(shots):
                 psi = state.copy()
                 outcome, value = psi.measure([1])
                 self.assertIn(outcome, ["0", "1"])
-                if outcome == "0":
-                    target = AerStatevector.from_label("00")
-                    self.assertEqual(value, target)
-                else:
-                    target = AerStatevector.from_label("10")
-                    self.assertEqual(value, target)
+                target = (
+                    AerStatevector.from_label("00")
+                    if outcome == "0"
+                    else AerStatevector.from_label("10")
+                )
+                self.assertEqual(value, target)
 
     def test_from_int(self):
         """Test from_int method"""

@@ -156,7 +156,6 @@ class TestVariousCircuit(SimulatorTestCase):
     def test_partial_result_a_single_invalid_circuit(self):
         """Test a partial result is returned with a job with a valid and invalid circuit."""
 
-        circuits = []
         qc = QuantumCircuit(2)
         qc.h(0)
         qc.cx(0, 1)
@@ -164,8 +163,7 @@ class TestVariousCircuit(SimulatorTestCase):
         qc_2 = QuantumCircuit(50)
         qc_2.h(range(50))
         qc_2.measure_all()
-        circuits.append(qc_2)
-        circuits.append(qc)
+        circuits = [qc_2, qc]
         backend = self.backend()
         shots = 100
         result = backend.run(circuits, shots=shots, method="statevector").result()
@@ -219,7 +217,9 @@ class TestVariousCircuit(SimulatorTestCase):
         }:
             result = backend.run(qc, shots=np_type(shots), method="statevector").result()
             self.assertSuccess(result)
-            self.assertEqual(sum([result.get_counts()[key] for key in result.get_counts()]), shots)
+            self.assertEqual(
+                sum(result.get_counts()[key] for key in result.get_counts()), shots
+            )
 
     def test_floating_shots(self):
         """Test implicit cast of shot option from float to int."""
@@ -236,4 +236,6 @@ class TestVariousCircuit(SimulatorTestCase):
                 result = backend.run(qc, shots=shots, method="statevector").result()
             shots = int(shots)
             self.assertSuccess(result)
-            self.assertEqual(sum([result.get_counts()[key] for key in result.get_counts()]), shots)
+            self.assertEqual(
+                sum(result.get_counts()[key] for key in result.get_counts()), shots
+            )

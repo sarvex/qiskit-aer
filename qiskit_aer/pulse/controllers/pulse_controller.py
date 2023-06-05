@@ -168,7 +168,7 @@ def pulse_controller(qobj):
     solver_options = getattr(config, "solver_options", {})
     for key in solver_options:
         if key not in allowed_solver_options:
-            raise Exception("Invalid solver_option: {}".format(key))
+            raise Exception(f"Invalid solver_option: {key}")
     solver_options = PulseSimOptions(**solver_options)
 
     # Set the ODE solver max step to be the half the
@@ -207,11 +207,9 @@ def pulse_controller(qobj):
         if not exp["can_sample"]:
             pulse_sim_desc.can_sample = False
 
-    # trim measurement operators to relevant qubits once constructed
-    meas_ops_reduced = []
-    for op in pulse_sim_desc.measurement_ops:
-        if op is not None:
-            meas_ops_reduced.append(op)
+    meas_ops_reduced = [
+        op for op in pulse_sim_desc.measurement_ops if op is not None
+    ]
     pulse_sim_desc.measurement_ops = meas_ops_reduced
 
     run_experiments = (
@@ -219,12 +217,11 @@ def pulse_controller(qobj):
     )
     exp_results, exp_times = run_experiments(pulse_sim_desc, pulse_de_model, solver_options)
 
-    output = {
+    return {
         "results": format_exp_results(exp_results, exp_times, pulse_sim_desc),
         "success": True,
         "qobj_id": qobj.qobj_id,
     }
-    return output
 
 
 def format_exp_results(exp_results, exp_times, pulse_sim_desc):
@@ -260,15 +257,30 @@ def format_exp_results(exp_results, exp_times, pulse_sim_desc):
 
         if pulse_sim_desc.can_sample:
             memory = exp_results[idx_exp][0]
-            results["data"]["statevector"] = []
-            for coef in exp_results[idx_exp][1]:
-                results["data"]["statevector"].append([np.real(coef), np.imag(coef)])
+            results["data"]["statevector"] = [
+                [np.real(coef), np.imag(coef)]
+                for coef in exp_results[idx_exp][1]
+            ]
             results["header"]["ode_t"] = exp_results[idx_exp][2]
         else:
             memory = exp_results[idx_exp]
 
         # meas_level 2 return the shots
-        if m_lev == 2:
+        if m_lev == 1:
+            if m_ret == "avg":
+                memory = [np.mean(memory, 0)]
+
+            # convert into the right [real, complex] pair form for json
+            results["data"]["memory"] = []
+            for mem_shot in memory:
+                results["data"]["memory"].append([])
+                for mem_slot in mem_shot:
+                    results["data"]["memory"][-1].append([np.real(mem_slot), np.imag(mem_slot)])
+
+            if m_ret == "avg":
+                results["data"]["memory"] = results["data"]["memory"][0]
+
+        elif m_lev == 2:
             # convert the memory **array** into a n
             # integer
             # e.g. [1,0] -> 2
@@ -287,21 +299,6 @@ def format_exp_results(exp_results, exp_times, pulse_sim_desc):
                 hex_dict[key] = unique[1][kk]
             results["data"]["counts"] = hex_dict
 
-        # meas_level 1 returns the <n>
-        elif m_lev == 1:
-            if m_ret == "avg":
-                memory = [np.mean(memory, 0)]
-
-            # convert into the right [real, complex] pair form for json
-            results["data"]["memory"] = []
-            for mem_shot in memory:
-                results["data"]["memory"].append([])
-                for mem_slot in mem_shot:
-                    results["data"]["memory"][-1].append([np.real(mem_slot), np.imag(mem_slot)])
-
-            if m_ret == "avg":
-                results["data"]["memory"] = results["data"]["memory"][0]
-
         all_results.append(results)
     return all_results
 
@@ -316,9 +313,9 @@ def _unsupported_warnings(noise_model):
         AerError: for unsupported features
     """
 
-    # Warnings that don't stop execution
-    warning_str = "{} are an untested feature, and therefore may not behave as expected."
     if noise_model is not None:
+        # Warnings that don't stop execution
+        warning_str = "{} are an untested feature, and therefore may not behave as expected."
         warn(warning_str.format("Noise models"))
 
 
@@ -404,7 +401,7 @@ class PulseInternalDEModel:
                 # Hamiltonian to decrease norm
                 H_noise = Operator(H_noise.data - 0.5j * n_op.data)
 
-            H = H + [H_noise]
+            H += [H_noise]
 
         # construct data sets
         self.h_ops_data = [-1.0j * hpart.data for hpart in H]

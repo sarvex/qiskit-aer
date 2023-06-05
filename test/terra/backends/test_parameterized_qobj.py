@@ -69,8 +69,9 @@ class TestParameterizedQobj(common.QiskitAerTestCase):
             for circuit in circuits:
                 circuit.save_statevector(pershot=pershot)
         params = [param1, [], [], [], param2]
-        qobj = assemble(circuits, backend=backend, shots=shots, parameterizations=params)
-        return qobj
+        return assemble(
+            circuits, backend=backend, shots=shots, parameterizations=params
+        )
 
     def test_parameterized_qobj_qasm_save_expval(self):
         """Test parameterized qobj with Expectation Value snapshot and qasm simulator."""
@@ -365,7 +366,7 @@ class TestParameterizedQobj(common.QiskitAerTestCase):
 
         for actual_result in result.results:
             metadata = actual_result.metadata
-            self.assertEqual(metadata["active_input_qubits"], [q for q in range(3)])
+            self.assertEqual(metadata["active_input_qubits"], list(range(3)))
         for i in range(3):
             self.assertEqual(result.data(i)["sv"], result_without_parameters.data(i)["sv"])
 

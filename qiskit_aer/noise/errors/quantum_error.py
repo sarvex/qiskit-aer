@@ -123,7 +123,7 @@ class QuantumError(BaseOperator, TolerancesMixin):
         # Remove zero probability circuits
         noise_ops = [(op, prob) for op, prob in noise_ops if prob > 0]
 
-        if len(noise_ops) == 0:
+        if not noise_ops:
             raise NoiseError(
                 "noise_ops must contain at least one operator with non-zero probability"
             )
@@ -180,34 +180,32 @@ class QuantumError(BaseOperator, TolerancesMixin):
                     f"Fail to convert {op.__class__.__name__} to Instruction."
                 ) from err
         if isinstance(op, BaseOperator):
-            if hasattr(op, "to_instruction"):
-                try:
-                    return cls._to_circuit(op.to_instruction())
-                except QiskitError as err:
-                    raise NoiseError(
-                        f"Fail to convert {op.__class__.__name__} to Instruction."
-                    ) from err
-            else:
+            if not hasattr(op, "to_instruction"):
                 raise NoiseError(
                     f"Unacceptable Operator, not implementing to_instruction: "
                     f"{op.__class__.__name__}"
                 )
+            try:
+                return cls._to_circuit(op.to_instruction())
+            except QiskitError as err:
+                raise NoiseError(
+                    f"Fail to convert {op.__class__.__name__} to Instruction."
+                ) from err
         if isinstance(op, list):
-            if all(isinstance(aop, tuple) for aop in op):
-                num_qubits = max([max(qubits) for _, qubits in op]) + 1
-                circ = QuantumCircuit(num_qubits)
-                for inst, qubits in op:
-                    try:
-                        circ.append(inst, qargs=qubits)
-                    except CircuitError as err:
-                        raise NoiseError(
-                            f"Invalid operation type: {inst.__class__.__name__},"
-                            f" not appendable to circuit."
-                        ) from err
-                return circ
-            else:
+            if not all(isinstance(aop, tuple) for aop in op):
                 raise NoiseError(f"Invalid type of op list: {op}")
 
+            num_qubits = max(max(qubits) for _, qubits in op) + 1
+            circ = QuantumCircuit(num_qubits)
+            for inst, qubits in op:
+                try:
+                    circ.append(inst, qargs=qubits)
+                except CircuitError as err:
+                    raise NoiseError(
+                        f"Invalid operation type: {inst.__class__.__name__},"
+                        f" not appendable to circuit."
+                    ) from err
+            return circ
         raise NoiseError(f"Invalid noise op type {op.__class__.__name__}: {op}")
 
     def __repr__(self):
@@ -335,15 +333,13 @@ class QuantumError(BaseOperator, TolerancesMixin):
                 qobj_inst.qubits = [circ.find_bit(q).index for q in qargs]
                 circ_inst.append(qobj_inst.to_dict())
             instructions.append(circ_inst)
-        # Construct error dict
-        error = {
+        return {
             "type": "qerror",
             "id": self.id,
             "operations": [],
             "instructions": instructions,
             "probabilities": list(self.probabilities),
         }
-        return error
 
     def compose(self, other, qargs=None, front=False):
         if not isinstance(other, QuantumError):
